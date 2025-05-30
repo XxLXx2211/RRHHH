@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark theme variables are now default */
+    --background: 210 10% 15%; /* Darker background for dark mode */
+    --foreground: 210 30% 90%; /* Lighter text for dark mode */
+    --card: 210 10% 18%;
+    --card-foreground: 210 30% 90%;
+    --popover: 210 10% 18%;
+    --popover-foreground: 210 30% 90%;
+    --primary: 207 80% 65%; /* Slightly adjusted primary for dark mode */
+    --primary-foreground: 210 10% 15%;
+    --secondary: 210 10% 25%;
+    --secondary-foreground: 210 30% 90%;
+    --muted: 210 10% 22%;
+    --muted-foreground: 210 20% 60%;
+    --accent: 125 40% 65%; /* Slightly adjusted accent for dark mode */
+    --accent-foreground: 125 10% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 10% 30%;
+    --input: 210 10% 30%;
+    --ring: 207 80% 65%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.5rem;
+    --sidebar-background: 210 10% 12%;
+    --sidebar-foreground: 210 30% 85%;
+    --sidebar-primary: 207 80% 65%;
+    --sidebar-primary-foreground: 210 10% 15%;
+    --sidebar-accent: 125 40% 65%;
+    --sidebar-accent-foreground: 125 10% 90%;
+    --sidebar-border: 210 10% 25%;
+    --sidebar-ring: 207 80% 65%;
+  }
+
+  .light {
+    /* Light theme variables */
+    --background: 210 30% 96%; /* Light Gray #F0F4F8 */
+    --foreground: 210 10% 23%; /* Dark Gray for text */
+    --card: 210 30% 100%; /* White */
+    --card-foreground: 210 10% 23%;
+    --popover: 210 30% 100%; /* White */
+    --popover-foreground: 210 10% 23%;
+    --primary: 207 88% 68%; /* Soft Blue #64B5F6 */
+    --primary-foreground: 210 40% 98%; /* White */
+    --secondary: 210 25% 90%; /* A slightly different gray */
+    --secondary-foreground: 210 10% 23%;
+    --muted: 210 30% 90%; /* Slightly darker than background */
+    --muted-foreground: 210 10% 45%; /* Lighter text for muted contexts */
+    --accent: 125 43% 71%; /* Pale Green #A5D6A7 */
+    --accent-foreground: 125 25% 20%; /* Darker Green for text on accent */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 20% 85%; /* Slightly more contrast for borders */
+    --input: 210 20% 88%; /* Slightly lighter border for inputs */
+    --ring: 207 88% 68%; /* Primary color for focus rings */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --sidebar-background: 210 30% 93%;
+    --sidebar-foreground: 210 10% 23%;
+    --sidebar-primary: 207 88% 68%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 125 43% 71%;
+    --sidebar-accent-foreground: 125 25% 20%;
+    --sidebar-border: 210 20% 80%;
+    --sidebar-ring: 207 88% 68%;
+  }
+
+  /* The .dark class is still useful if someone wants to explicitly set dark on a parent
+     or if the ThemeProvider adds it. For consistency, we keep its definition,
+     though :root now holds the dark theme variables by default. */
+  .dark {
+    --background: 210 10% 15%;
+    --foreground: 210 30% 90%;
+    --card: 210 10% 18%;
+    --card-foreground: 210 30% 90%;
+    --popover: 210 10% 18%;
+    --popover-foreground: 210 30% 90%;
+    --primary: 207 80% 65%;
+    --primary-foreground: 210 10% 15%;
+    --secondary: 210 10% 25%;
+    --secondary-foreground: 210 30% 90%;
+    --muted: 210 10% 22%;
+    --muted-foreground: 210 20% 60%;
+    --accent: 125 40% 65%;
+    --accent-foreground: 125 10% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 10% 30%;
+    --input: 210 10% 30%;
+    --ring: 207 80% 65%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 210 10% 12%;
+    --sidebar-foreground: 210 30% 85%;
+    --sidebar-primary: 207 80% 65%;
+    --sidebar-primary-foreground: 210 10% 15%;
+    --sidebar-accent: 125 40% 65%;
+    --sidebar-accent-foreground: 125 10% 90%;
+    --sidebar-border: 210 10% 25%;
+    --sidebar-ring: 207 80% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

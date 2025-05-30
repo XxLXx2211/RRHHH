@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Enums basados en tu aplicación
+enum Sexo {
+  Masculino
+  Femenino
+}
+
+enum CanalRecepcion {
+  Web
+  Referido
+  Oficina
+  RedesSociales
+  BolsaEmpleo
+  EntregaCVPresencial
+  WhatsApp
+  PortalWeb
+  LlamadaDirecta
+  Facebook
+}
+
+enum TipoContacto {
+  Llamada
+  Correo
+  Presencial
+  Mensaje
+  Entrevista
+  EntrevistaTelefonica
+  WhatsApp
+}
+
+enum EstatusCandidato {
+  Asignado
+  NoElegible
+  Elegible
+  Renuncia
+  NoAsistio
+  AConsiderar
+  NoInteresado
+  NoContesta
+  Rechazado
+  Nuevo
+  EnProceso
+  Entrevistado
+  Contratado
+  Descartado
+  EnEspera
+}
+
+enum AreaInteres {
+  OperarioMantenimiento
+  ServiciosGenerales
+  EncargadaDePDS
+  OperarioMantenimientoServiciosGenerales
+  Ventas
+  Administracion
+  Marketing
+  TecnologiaInformacion
+  RecursosHumanos
+  Finanzas
+  Operaciones
+  AtencionCliente
+  Logistica
+  Produccion
+  Otro
+}
+
+// Modelo principal de Candidatos
+model Candidate {
+  id String @id @default(cuid())
+
+  // Información Personal
+  nombres_apellidos String
+  cedula           String  @unique
+  sexo             Sexo
+  edad             Int?
+  num_hijos        Int?
+
+  // Información de Contacto
+  canal_recepcion  CanalRecepcion
+  fuente           String?
+  referido         String?
+  tipo_contacto    TipoContacto
+  fecha_contacto   DateTime
+  telefonos        String
+
+  // Proceso de Entrevista
+  citado_entrevista        Boolean
+  fecha_entrevista         DateTime?
+  entrevistador_telefonico String?
+  entrevistador_presencial String?
+  solicitud_empleo         Boolean
+  guia_entrevista          Boolean
+
+  // Información de Ubicación
+  ubicacion    String
+  zona_reside  String
+  direccion    String
+
+  // Información Profesional
+  area_interes         AreaInteres
+  expectativa_salarial Int?
+  experiencia          String
+
+  // Información Bancaria
+  cuenta_bancaria    String?
+  seguridad_bancaria String?
+
+  // Seguimiento y Estatus
+  estatus      EstatusCandidato
+  pds_asignado String?
+  comentarios  String?
+
+  // Timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("candidates")
+}
+
+// Modelo para ubicaciones (opcional, para normalizar datos)
+model Location {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  zones    Zone[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("locations")
+}
+
+model Zone {
+  id          String   @id @default(cuid())
+  name        String
+  location_id String
+  location    Location @relation(fields: [location_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([name, location_id])
+  @@map("zones")
+}
