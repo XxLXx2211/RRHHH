@@ -3,6 +3,10 @@
 # Script de build personalizado para Vercel
 echo "🔧 Iniciando build personalizado para Vercel..."
 
+# Ejecutar migraciones de base de datos
+echo "🗄️ Ejecutando migraciones de base de datos..."
+npx prisma migrate deploy
+
 # Generar cliente de Prisma
 echo "📦 Generando cliente de Prisma..."
 npx prisma generate

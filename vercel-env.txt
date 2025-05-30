@@ -1,4 +1,4 @@
-DATABASE_URL=postgresql://postgres:TU_PASSWORD@db.TU_PROYECTO.supabase.co:5432/postgres?schema=public
+DATABASE_URL=postgresql://postgres:2175@db.crvxffayhqbmjzczcowh.supabase.co:5432/postgres?schema=public
 NODE_ENV=production
 NEXTAUTH_SECRET=8f9a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3
 NEXTAUTH_URL=https://tu-dominio.vercel.app
