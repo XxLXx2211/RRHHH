@@ -103,7 +103,7 @@ export class CandidateService {
         // Convertir fechas si es necesario
         fecha_contacto: new Date(preparedData.fecha_contacto),
         fecha_entrevista: preparedData.fecha_entrevista ? new Date(preparedData.fecha_entrevista) : null
-      }
+      } as any
     })
   }
 
@@ -117,7 +117,7 @@ export class CandidateService {
         // Convertir fechas si es necesario
         fecha_contacto: preparedData.fecha_contacto ? new Date(preparedData.fecha_contacto) : undefined,
         fecha_entrevista: preparedData.fecha_entrevista ? new Date(preparedData.fecha_entrevista) : undefined
-      }
+      } as any
     })
   }
 
