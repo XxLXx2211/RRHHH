@@ -6,8 +6,17 @@ yarn-error.log*
 
 # Docker files (not needed for Vercel)
 docker-compose.yml
+docker-compose.yml.backup
 Dockerfile
+Dockerfile.backup
 .dockerignore
+
+# Railway files (not needed for Vercel)
+railway.toml
+railway.toml.backup
+
+# Backup files
+*.backup
 
 # Environment files
 .env
