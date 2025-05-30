@@ -27,13 +27,13 @@ export class CandidateService {
 
     if (filters?.search) {
       where.OR = [
-        { nombres_apellidos: { contains: filters.search, mode: 'insensitive' } },
+        { nombres_apellidos: { contains: filters.search } },
         { cedula: { contains: filters.search } },
-        { experiencia: { contains: filters.search, mode: 'insensitive' } },
-        { comentarios: { contains: filters.search, mode: 'insensitive' } },
+        { experiencia: { contains: filters.search } },
+        { comentarios: { contains: filters.search } },
         { telefonos: { contains: filters.search } },
-        { direccion: { contains: filters.search, mode: 'insensitive' } },
-        { pds_asignado: { contains: filters.search, mode: 'insensitive' } }
+        { direccion: { contains: filters.search } },
+        { pds_asignado: { contains: filters.search } }
       ]
     }
 
