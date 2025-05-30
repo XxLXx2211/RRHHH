@@ -90,11 +90,11 @@ export function mapCandidateToFormData(candidate: Candidate): CandidateFormData 
   const formData: CandidateFormData = {
     ...baseData,
     // Mapear campos enum de Prisma a TypeScript
-    sexo: mapPrismaValueToTypeScript(baseData.sexo || ''),
-    canal_recepcion: mapPrismaValueToTypeScript(baseData.canal_recepcion || ''),
-    tipo_contacto: mapPrismaValueToTypeScript(baseData.tipo_contacto || ''),
-    area_interes: mapPrismaValueToTypeScript(baseData.area_interes || ''),
-    estatus: mapPrismaValueToTypeScript(baseData.estatus || ''),
+    sexo: mapPrismaValueToTypeScript(baseData.sexo || '') as Sexo,
+    canal_recepcion: mapPrismaValueToTypeScript(baseData.canal_recepcion || '') as CanalRecepcion,
+    tipo_contacto: mapPrismaValueToTypeScript(baseData.tipo_contacto || '') as TipoContacto,
+    area_interes: mapPrismaValueToTypeScript(baseData.area_interes || '') as AreaInteres,
+    estatus: mapPrismaValueToTypeScript(baseData.estatus || '') as EstatusCandidato,
     // Asegurar que los campos opcionales tengan valores por defecto apropiados
     fuente: baseData.fuente || '',
     referido: baseData.referido || '',
@@ -161,11 +161,11 @@ export function prepareFormDataForSubmission(formData: CandidateFormData): Candi
   return {
     ...formData,
     // Convertir valores de TypeScript a claves de Prisma para campos enum
-    sexo: mapTypeScriptValueToPrisma(formData.sexo),
-    canal_recepcion: mapTypeScriptValueToPrisma(formData.canal_recepcion),
-    tipo_contacto: mapTypeScriptValueToPrisma(formData.tipo_contacto),
-    area_interes: mapTypeScriptValueToPrisma(formData.area_interes),
-    estatus: mapTypeScriptValueToPrisma(formData.estatus),
+    sexo: mapTypeScriptValueToPrisma(formData.sexo) as Sexo,
+    canal_recepcion: mapTypeScriptValueToPrisma(formData.canal_recepcion) as CanalRecepcion,
+    tipo_contacto: mapTypeScriptValueToPrisma(formData.tipo_contacto) as TipoContacto,
+    area_interes: mapTypeScriptValueToPrisma(formData.area_interes) as AreaInteres,
+    estatus: mapTypeScriptValueToPrisma(formData.estatus) as EstatusCandidato,
     // Convertir strings vacíos a null para campos opcionales
     fuente: formData.fuente?.trim() || null,
     referido: formData.referido?.trim() || null,
