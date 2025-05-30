@@ -6,7 +6,7 @@ import { Sexo, EstatusCandidato, AreaInteres, CanalRecepcion, TipoContacto } fro
 
 // Función para convertir valores de display a claves de enum
 export const getEnumKeyFromDisplayValue = <T extends Record<string, string>>(
-  enumObj: T, 
+  enumObj: T,
   displayValue: string
 ): keyof T | null => {
   const entry = Object.entries(enumObj).find(([_, val]) => val === displayValue);
@@ -15,7 +15,7 @@ export const getEnumKeyFromDisplayValue = <T extends Record<string, string>>(
 
 // Función para convertir claves de enum a valores de display
 export const getDisplayValueFromEnumKey = <T extends Record<string, string>>(
-  enumObj: T, 
+  enumObj: T,
   enumKey: keyof T
 ): string => {
   return enumObj[enumKey] || enumKey.toString();
@@ -23,7 +23,7 @@ export const getDisplayValueFromEnumKey = <T extends Record<string, string>>(
 
 // Función específica para filtros - maneja tanto claves como valores de display
 export const normalizeEnumValueForFilter = <T extends Record<string, string>>(
-  enumObj: T, 
+  enumObj: T,
   value: string,
   enumName: string = 'Unknown'
 ): string => {
@@ -32,14 +32,14 @@ export const normalizeEnumValueForFilter = <T extends Record<string, string>>(
     console.log(`[${enumName}] Value "${value}" is already a valid enum key`);
     return value;
   }
-  
+
   // Si es un valor de display, convertir a clave
   const enumKey = getEnumKeyFromDisplayValue(enumObj, value);
   if (enumKey) {
-    console.log(`[${enumName}] Converted display value "${value}" to enum key "${enumKey}"`);
-    return enumKey.toString();
+    console.log(`[${enumName}] Converted display value "${value}" to enum key "${String(enumKey)}"`);
+    return String(enumKey);
   }
-  
+
   // Si no se encuentra, log de error y devolver el valor original
   console.error(`[${enumName}] Could not normalize value "${value}".`);
   console.error(`Available enum keys:`, Object.keys(enumObj));
@@ -48,36 +48,36 @@ export const normalizeEnumValueForFilter = <T extends Record<string, string>>(
 };
 
 // Funciones específicas para cada enum
-export const normalizeSexoForFilter = (value: string): string => 
+export const normalizeSexoForFilter = (value: string): string =>
   normalizeEnumValueForFilter(Sexo, value, 'Sexo');
 
-export const normalizeEstatusForFilter = (value: string): string => 
+export const normalizeEstatusForFilter = (value: string): string =>
   normalizeEnumValueForFilter(EstatusCandidato, value, 'EstatusCandidato');
 
-export const normalizeAreaInteresForFilter = (value: string): string => 
+export const normalizeAreaInteresForFilter = (value: string): string =>
   normalizeEnumValueForFilter(AreaInteres, value, 'AreaInteres');
 
-export const normalizeCanalRecepcionForFilter = (value: string): string => 
+export const normalizeCanalRecepcionForFilter = (value: string): string =>
   normalizeEnumValueForFilter(CanalRecepcion, value, 'CanalRecepcion');
 
-export const normalizeTipoContactoForFilter = (value: string): string => 
+export const normalizeTipoContactoForFilter = (value: string): string =>
   normalizeEnumValueForFilter(TipoContacto, value, 'TipoContacto');
 
 // Función para normalizar todos los filtros de enum de una vez
 export const normalizeFiltersForApi = (filters: Record<string, any>): Record<string, any> => {
   const normalized = { ...filters };
-  
+
   if (normalized.sexo && normalized.sexo !== 'Todos') {
     normalized.sexo = normalizeSexoForFilter(normalized.sexo);
   }
-  
+
   if (normalized.estatus && normalized.estatus !== 'Todos') {
     normalized.estatus = normalizeEstatusForFilter(normalized.estatus);
   }
-  
+
   if (normalized.area_interes && normalized.area_interes !== 'Todos') {
     normalized.area_interes = normalizeAreaInteresForFilter(normalized.area_interes);
   }
-  
+
   return normalized;
 };
