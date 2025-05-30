@@ -41,7 +41,6 @@ const PRISMA_TO_TYPESCRIPT_MAPPING: Record<string, string> = {
   'Mensaje': 'Mensaje',
   'Entrevista': 'Entrevista',
   'EntrevistaTelefonica': 'Entrevista Telefónica',
-  'WhatsApp': 'WhatsApp',
 
   // EstatusCandidato mappings - TODOS los valores
   'Asignado': 'Asignado',
