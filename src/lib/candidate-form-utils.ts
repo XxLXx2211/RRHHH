@@ -27,7 +27,6 @@ const PRISMA_TO_TYPESCRIPT_MAPPING = {
   'Mensaje': 'Mensaje',
   'Entrevista': 'Entrevista',
   'EntrevistaTelefonica': 'Entrevista Telefónica',
-  'WhatsApp': 'WhatsApp',
 
   // EstatusCandidato mappings - TODOS los valores
   'Asignado': 'Asignado',
