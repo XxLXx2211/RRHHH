@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // Verificar conexión a la base de datos
     await prisma.$queryRaw`SELECT 1`;
-    
+
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -14,7 +14,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    
+
     return NextResponse.json(
       {
         status: 'unhealthy',
