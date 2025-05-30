@@ -320,7 +320,7 @@ export default function HomePage() {
         ) : error ? (
           <div className="text-center text-destructive py-12">
             <p className="text-lg font-medium mb-2">Error al cargar candidatos</p>
-            <p className="text-sm">{error instanceof Error ? error.message : 'Error desconocido'}</p>
+            <p className="text-sm">{(error as any)?.message || 'Error desconocido'}</p>
           </div>
         ) : (
           <CandidateList
