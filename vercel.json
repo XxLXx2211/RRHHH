@@ -4,11 +4,6 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "installCommand": "npm ci",
-  "env": {
-    "DATABASE_URL": "file:./dev.db",
-    "NODE_ENV": "production",
-    "NEXTAUTH_URL": "@nextauth_url"
-  },
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
