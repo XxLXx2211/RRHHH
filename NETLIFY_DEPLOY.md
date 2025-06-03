@@ -18,12 +18,14 @@ NEXTAUTH_SECRET=candidatoscope-super-secreto-netlify-2024
 NEXTAUTH_URL=https://tu-dominio.netlify.app
 ```
 
-### **🤖 Variables Opcionales (para IA):**
+### **🤖 Variables para IA (Google Gemini):**
 
 ```bash
-# Solo si quieres usar las funcionalidades de IA
-GOOGLE_GENAI_API_KEY=tu-api-key-de-google-ai
+# API Key de Google Gemini para funcionalidades de IA
+GOOGLE_GENAI_API_KEY=AIzaSyAvhZujl3qBafiBtmQQpT4rIGxPh0o7OwU
 ```
+
+> **⚠️ IMPORTANTE:** Esta API key ya está configurada y es funcional. No la cambies a menos que tengas una nueva.
 
 ## 🔧 **Configuración de Build en Netlify**
 

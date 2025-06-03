@@ -2,8 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  // Optimizaciones para producción
-  output: 'standalone',
+  // Configuración optimizada para Netlify con Next.js plugin
 
   // Configuración de TypeScript y ESLint
   typescript: {
