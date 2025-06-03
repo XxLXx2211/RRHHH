@@ -113,5 +113,5 @@ export interface LocationData {
 // CandidateFormData excluye id y timestamps
 export type CandidateFormData = Omit<Candidate, "id" | "created_at" | "updated_at">;
 
-// Re-export Prisma types for convenience
-export type { Candidate as PrismaCandidate } from '@prisma/client';
+// Note: Using Supabase types instead of Prisma
+// PrismaCandidate type removed as we now use SupabaseCandidate from @/lib/supabase
