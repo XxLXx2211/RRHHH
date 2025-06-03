@@ -24,36 +24,40 @@ export function ThemeProvider({
   defaultTheme = 'dark', // Defaulting to dark here is key
   storageKey = 'theme',
 }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedTheme = window.localStorage.getItem(storageKey) as Theme | null;
-        if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark')) {
-          return storedTheme;
-        }
-      } catch (e) {
-        console.error('Failed to access localStorage for theme:', e);
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Initialize theme from localStorage after hydration
+  useEffect(() => {
+    try {
+      const storedTheme = window.localStorage.getItem(storageKey) as Theme | null;
+      if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark')) {
+        setThemeState(storedTheme);
       }
+    } catch (e) {
+      console.error('Failed to access localStorage for theme:', e);
     }
-    return defaultTheme;
-  });
+    setIsHydrated(true);
+  }, [storageKey]);
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     const root = window.document.documentElement;
     // Remove any existing theme classes
     root.classList.remove('light', 'dark');
-    
+
     // Add the current theme class
     // If the theme is 'dark', and CSS :root is already dark, adding '.dark' is fine.
     // If the theme is 'light', it adds '.light' which will override the :root dark styles.
-    root.classList.add(theme); 
+    root.classList.add(theme);
 
     try {
       window.localStorage.setItem(storageKey, theme);
     } catch (e) {
       console.error('Failed to set localStorage for theme:', e);
     }
-  }, [theme, storageKey]);
+  }, [theme, storageKey, isHydrated]);
 
   const toggleTheme = useCallback(() => {
     setThemeState((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
