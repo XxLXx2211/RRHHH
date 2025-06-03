@@ -4,10 +4,10 @@ import { CandidateService } from '@/lib/candidate-service'
 // GET - Obtener candidato por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     console.log(`📋 [API] Obteniendo candidato ID: ${id}`)
 
@@ -33,10 +33,10 @@ export async function GET(
 // PUT - Actualizar candidato
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const data = await request.json()
 
     console.log(`📋 [API] Actualizando candidato ID: ${id}`)
@@ -63,10 +63,10 @@ export async function PUT(
 // DELETE - Eliminar candidato
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     console.log(`📋 [API] Eliminando candidato ID: ${id}`)
 
