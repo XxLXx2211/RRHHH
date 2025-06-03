@@ -10,7 +10,8 @@ import { AppHeader } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircleIcon, Loader2 } from 'lucide-react';
+import { PlusCircleIcon, Loader2, SparklesIcon } from 'lucide-react';
+import { assessCandidateSuitability, AssessCandidateSuitabilityInput, AssessCandidateSuitabilityOutput } from '@/ai/flows/assess-candidate-suitability';
 
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { useCandidates, useCreateCandidate, useUpdateCandidate, useDeleteCandidate } from '@/hooks/use-candidates';
@@ -25,6 +26,11 @@ const DynamicCandidateForm = dynamic(() => import('@/components/candidates/candi
 
 const DynamicCandidateDetailsDialog = dynamic(() => import('@/components/candidates/candidate-details-dialog').then(mod => mod.CandidateDetailsDialog), {
   loading: () => <p>Cargando detalles...</p>,
+  ssr: false
+});
+
+const DynamicCandidateAssessmentDialog = dynamic(() => import('@/components/candidates/candidate-assessment-dialog').then(mod => mod.CandidateAssessmentDialog), {
+  loading: () => <p>Cargando evaluación...</p>,
   ssr: false
 });
 
@@ -48,6 +54,12 @@ export default function HomePage() {
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [candidateForDetails, setCandidateForDetails] = useState<Candidate | null>(null);
+
+  // Estados para evaluación de IA
+  const [isAssessmentDialogOpen, setIsAssessmentDialogOpen] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState<AssessCandidateSuitabilityOutput | null>(null);
+  const [isAssessing, setIsAssessing] = useState(false);
+  const [candidateForAssessment, setCandidateForAssessment] = useState<Candidate | null>(null);
 
   const [filters, setFilters] = useState<FiltersState>(INITIAL_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
@@ -194,6 +206,37 @@ export default function HomePage() {
     setIsDetailsDialogOpen(true);
   }, []);
 
+  const handleAssessSuitability = useCallback(async (candidate: Candidate) => {
+    setCandidateForAssessment(candidate);
+    setIsAssessmentDialogOpen(true);
+    setIsAssessing(true);
+    setAssessmentResult(null);
+
+    try {
+      const input: AssessCandidateSuitabilityInput = {
+        nombres_apellidos: candidate.nombres_apellidos,
+        edad: candidate.edad || undefined,
+        experiencia: candidate.experiencia,
+        area_interes: candidate.area_interes,
+        expectativa_salarial: candidate.expectativa_salarial || undefined,
+        ubicacion: candidate.ubicacion,
+        estatus_actual: candidate.estatus,
+      };
+      const result = await assessCandidateSuitability(input);
+      setAssessmentResult(result);
+    } catch (error) {
+      console.error("Error assessing candidate suitability:", error);
+      toast({
+        title: "Error de Evaluación IA",
+        description: "No se pudo obtener la evaluación de idoneidad del candidato.",
+        variant: "destructive",
+      });
+      setAssessmentResult(null);
+    } finally {
+      setIsAssessing(false);
+    }
+  }, [toast]);
+
 
 
   const handleFilterChange = useCallback((newFilters: FiltersState) => {
@@ -293,6 +336,7 @@ export default function HomePage() {
             onEdit={openFormForEdit}
             onViewDetails={openDetailsDialog}
             onDelete={handleDeleteCandidate}
+            onAssessSuitability={handleAssessSuitability}
             hasActiveFilters={hasActiveFilters}
           />
         )}
@@ -337,6 +381,19 @@ export default function HomePage() {
         />
       )}
 
+      {isAssessmentDialogOpen && (
+        <DynamicCandidateAssessmentDialog
+          isOpen={isAssessmentDialogOpen}
+          onClose={() => {
+            setIsAssessmentDialogOpen(false);
+            setCandidateForAssessment(null);
+            setAssessmentResult(null);
+          }}
+          candidateName={candidateForAssessment?.nombres_apellidos}
+          assessment={assessmentResult}
+          isLoading={isAssessing}
+        />
+      )}
 
     </div>
   );

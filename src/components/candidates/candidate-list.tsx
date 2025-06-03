@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit2Icon, EyeIcon, MoreHorizontalIcon, Trash2Icon, ArrowUpDownIcon, FileTextIcon } from 'lucide-react';
+import { Edit2Icon, EyeIcon, MoreHorizontalIcon, Trash2Icon, ArrowUpDownIcon, FileTextIcon, SparklesIcon } from 'lucide-react';
 
 // Mapeo COMPLETO para mostrar valores formateados en el listado
 const PRISMA_TO_TYPESCRIPT_MAPPING: Record<string, string> = {
@@ -87,6 +87,7 @@ interface CandidateListProps {
   onEdit: (candidate: Candidate) => void;
   onViewDetails: (candidate: Candidate) => void;
   onDelete: (candidateId: string) => void;
+  onAssessSuitability?: (candidate: Candidate) => void;
   hasActiveFilters?: boolean;
 }
 
@@ -98,7 +99,7 @@ const getNestedValue = (obj: any, path: string): any => {
 };
 
 
-export const CandidateList = React.memo(function CandidateList({ candidates, onEdit, onViewDetails, onDelete, hasActiveFilters = false }: CandidateListProps) {
+export const CandidateList = React.memo(function CandidateList({ candidates, onEdit, onViewDetails, onDelete, onAssessSuitability, hasActiveFilters = false }: CandidateListProps) {
   const [sortKey, setSortKey] = useState<SortKey>('nombres_apellidos');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -224,16 +225,11 @@ export const CandidateList = React.memo(function CandidateList({ candidates, onE
                     <DropdownMenuItem onClick={() => onEdit(candidate)}>
                       <Edit2Icon className="mr-2 h-4 w-4" /> Editar
                     </DropdownMenuItem>
-
-                     {/* If AI summary functionality is ever re-added, this could be useful:
-                     <DropdownMenuItem onClick={() => {
-                        // Logic for opening summary dialog.
-                        // For now, we assume candidate.experiencia_summary might still exist.
-                        // You might need a specific handler like openSummaryDialog from HomePage
-                     }} disabled={!candidate.experiencia_summary}>
-                      <EyeIcon className="mr-2 h-4 w-4" /> Ver Resumen Experiencia (IA)
-                    </DropdownMenuItem>
-                    */}
+                    {onAssessSuitability && (
+                      <DropdownMenuItem onClick={() => onAssessSuitability(candidate)}>
+                        <SparklesIcon className="mr-2 h-4 w-4" /> Evaluar Idoneidad (IA)
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                      <DropdownMenuItem onClick={() => onDelete(candidate.id)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                       <Trash2Icon className="mr-2 h-4 w-4" /> Eliminar
