@@ -12,6 +12,7 @@
     "db:reset": "npx prisma db push --force-reset",
     "db:studio": "npx prisma studio",
     "supabase:setup": "./scripts/setup-supabase.sh",
+    "supabase:test": "node scripts/test-supabase-connection.js",
     "start": "next start",
     "start:prod": "NODE_ENV=production next start -p 3000",
     "lint": "next lint",
