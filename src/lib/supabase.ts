@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Configuración de Supabase usando las API keys
-const supabaseUrl = 'https://gcyqggtvnlcmzkjffxuc.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjeXFnZ3R2bmxjbXpramZmeHVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MTIwODgsImV4cCI6MjA2NDQ4ODA4OH0.PjydW5HPn8ukPCRp7LYxD5dy1IzcOXRc1Xb-lXAq5Rw'
+// Configuración de Supabase usando variables de entorno
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 // Crear cliente de Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)

@@ -1,6 +1,6 @@
-# Sistema RRHH
+# CandidatoScope - Sistema de Gestión de RRHH
 
-Sistema de gestión de recursos humanos desarrollado con Next.js, TypeScript y SQLite.
+Sistema completo de gestión de recursos humanos desarrollado con Next.js 15, React 18, TypeScript y Supabase.
 
 ## Características
 

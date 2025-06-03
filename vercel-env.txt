@@ -1,6 +1,0 @@
-DATABASE_URL=postgresql://postgres.crvxffayhqbmjzczcowh:2175@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
-NODE_ENV=production
-NEXTAUTH_SECRET=8f9a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3
-NEXTAUTH_URL=https://tu-dominio.vercel.app
-GEMINI_API_KEY=AIzaSyA4j95pTsy_ghqLOIPrsbK5DLCGOsG6RGU
-PORT=3000
