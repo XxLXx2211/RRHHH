@@ -4,6 +4,7 @@ import { CandidateFormData } from '@/types'
 import { AreaInteres, EstatusCandidato, CanalRecepcion, TipoContacto, Sexo } from '@/types'
 import { normalizeSexoForFilter, normalizeEstatusForFilter, normalizeAreaInteresForFilter } from '@/lib/enum-utils'
 import { prepareFormDataForSubmission } from '@/lib/candidate-form-utils'
+import { createSearchFilter, logDatabaseConfig } from '@/lib/supabase-config'
 
 // Funciones de mapeo para convertir valores de display a claves de enum (legacy - mantenido para compatibilidad)
 const getEnumKeyFromValue = <T extends Record<string, string>>(enumObj: T, value: string): keyof T | string => {
@@ -23,17 +24,20 @@ export class CandidateService {
     edad_min?: number
     edad_max?: number
   }) {
+    // Log de configuración de base de datos
+    logDatabaseConfig();
+
     const where: Prisma.CandidateWhereInput = {}
 
     if (filters?.search) {
       where.OR = [
-        { nombres_apellidos: { contains: filters.search } },
+        { nombres_apellidos: createSearchFilter('nombres_apellidos', filters.search) as any },
         { cedula: { contains: filters.search } },
-        { experiencia: { contains: filters.search } },
-        { comentarios: { contains: filters.search } },
+        { experiencia: createSearchFilter('experiencia', filters.search) as any },
+        { comentarios: createSearchFilter('comentarios', filters.search) as any },
         { telefonos: { contains: filters.search } },
-        { direccion: { contains: filters.search } },
-        { pds_asignado: { contains: filters.search } }
+        { direccion: createSearchFilter('direccion', filters.search) as any },
+        { pds_asignado: createSearchFilter('pds_asignado', filters.search) as any }
       ]
     }
 
