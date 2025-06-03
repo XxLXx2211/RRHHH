@@ -28,24 +28,25 @@ Sistema completo de gestión de recursos humanos desarrollado con Next.js 15, Re
    npm run dev
    ```
 
-## Deployment en Vercel
+## Deployment en Netlify
 
 ### Paso 1: Configurar Variables de Entorno
 
-En el Dashboard de Vercel, ve a **Settings** → **Environment Variables** y agrega:
+En el Dashboard de Netlify, ve a **Site Settings** → **Environment Variables** y agrega:
 
 ```
-DATABASE_URL = file:./dev.db
-GEMINI_API_KEY = tu_clave_de_gemini_aqui
-NEXTAUTH_SECRET = tu_secreto_nextauth_aqui
-NEXTAUTH_URL = https://tu-dominio.vercel.app
-NODE_ENV = production
+NEXT_PUBLIC_SUPABASE_URL=https://rwcbpuekhaujyzgaodro.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y2JwdWVraGF1anl6Z2FvZHJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MTgwNzUsImV4cCI6MjA2NDQ5NDA3NX0.uJ5H0RyZ2NUDziv-9DLWgL0PRzu6tN8tsU0kwpY_mM0
+NODE_ENV=production
+NEXT_TELEMETRY_DISABLED=1
+NEXTAUTH_SECRET=candidatoscope-super-secreto-netlify-2024
+NEXTAUTH_URL=https://tu-dominio.netlify.app
 ```
 
 ### Paso 2: Deploy
 
-1. Conecta tu repositorio de GitHub con Vercel
-2. Vercel detectará automáticamente que es un proyecto Next.js
+1. Conecta tu repositorio de GitHub con Netlify
+2. Netlify detectará automáticamente que es un proyecto Next.js
 3. Las variables de entorno se aplicarán automáticamente
 
 ## Estructura del Proyecto
