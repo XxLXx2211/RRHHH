@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import { SupabaseAdapter } from '@next-auth/supabase-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { supabase } from './supabase'
+import { UserRole, UserDepartment } from '@/types/auth'
 
 export const authOptions: NextAuthOptions = {
   adapter: SupabaseAdapter({
@@ -67,8 +68,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token) {
         session.user.id = token.sub!
-        session.user.role = token.role as string
-        session.user.department = token.department as string
+        session.user.role = token.role as UserRole
+        session.user.department = token.department as UserDepartment
         session.user.avatar = token.avatar as string
       }
       return session
