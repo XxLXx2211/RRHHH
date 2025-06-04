@@ -1,14 +1,30 @@
 import { NextAuthOptions } from 'next-auth'
-import { SupabaseAdapter } from '@next-auth/supabase-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { supabase } from './supabase'
 import { UserRole, UserDepartment } from '@/types/auth'
 
+// Demo users for testing
+const DEMO_USERS = [
+  {
+    id: '1',
+    email: 'admin@candidatoscope.com',
+    password: 'admin123',
+    name: 'Administrador',
+    role: 'admin' as UserRole,
+    department: 'hr' as UserDepartment,
+    avatar: undefined
+  },
+  {
+    id: '2',
+    email: 'recruiter@candidatoscope.com',
+    password: 'recruiter123',
+    name: 'Reclutador',
+    role: 'recruiter' as UserRole,
+    department: 'hr' as UserDepartment,
+    avatar: undefined
+  }
+]
+
 export const authOptions: NextAuthOptions = {
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  }),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -21,34 +37,22 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: credentials.email,
-            password: credentials.password,
-          })
+        // For demo purposes, use hardcoded users
+        const user = DEMO_USERS.find(
+          u => u.email === credentials.email && u.password === credentials.password
+        )
 
-          if (error || !data.user) {
-            return null
-          }
-
-          // Obtener perfil del usuario
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('user_id', data.user.id)
-            .single()
-
-          return {
-            id: data.user.id,
-            email: data.user.email!,
-            name: profile?.full_name || data.user.email!,
-            role: profile?.role || 'recruiter',
-            department: profile?.department || 'hr',
-            avatar: profile?.avatar_url,
-          }
-        } catch (error) {
-          console.error('Auth error:', error)
+        if (!user) {
           return null
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          department: user.department,
+          avatar: user.avatar,
         }
       }
     })
