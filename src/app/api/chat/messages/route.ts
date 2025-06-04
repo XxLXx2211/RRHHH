@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     // Get messages from store
     const roomMessages = chatMessageStore.getMessages(roomId)
 
+    console.log(`[CHAT API] GET messages for room ${roomId}:`, roomMessages.length, 'messages')
+
     return NextResponse.json(roomMessages)
   } catch (error) {
     console.error('Error fetching messages:', error)
@@ -59,8 +61,12 @@ export async function POST(request: NextRequest) {
       isEdited: false
     }
 
+    console.log(`[CHAT API] Creating new message:`, newMessage)
+
     // Add to store (this will broadcast to all connected clients)
     const savedMessage = chatMessageStore.addMessage(newMessage)
+
+    console.log(`[CHAT API] Message saved:`, savedMessage.id)
 
     // Update user status
     userStatusTracker.setUserOnline(session.user.id!)

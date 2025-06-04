@@ -12,15 +12,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log(`[SSE] New connection from user: ${session.user.id}`)
+
     // Create a readable stream for Server-Sent Events
     const stream = new ReadableStream({
       start(controller) {
+        console.log(`[SSE] Starting stream for user: ${session.user.id}`)
+
         // Send initial connection message
         const data = `data: ${JSON.stringify({ type: 'connected', userId: session.user.id })}\n\n`
         controller.enqueue(new TextEncoder().encode(data))
 
         // Set up event listeners
         const handleNewMessage = (message: any) => {
+          console.log(`[SSE] Sending new message to user ${session.user.id}:`, message.id)
           const data = `data: ${JSON.stringify({ type: 'new_message', data: message })}\n\n`
           controller.enqueue(new TextEncoder().encode(data))
         }

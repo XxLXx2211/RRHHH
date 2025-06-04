@@ -14,7 +14,7 @@ import { PlusCircleIcon, Loader2, SparklesIcon } from 'lucide-react';
 import { assessCandidateSuitability, AssessCandidateSuitabilityInput, AssessCandidateSuitabilityOutput } from '@/ai/flows/assess-candidate-suitability';
 
 import { PaginationControls } from '@/components/ui/pagination-controls';
-import { useCandidates, useCreateCandidate, useUpdateCandidate, useDeleteCandidate } from '@/hooks/use-candidates';
+// import { useCandidates, useCreateCandidate, useUpdateCandidate, useDeleteCandidate } from '@/hooks/use-candidates';
 import { normalizeFiltersForApi } from '@/lib/enum-utils';
 import { mapCandidateToFormData } from '@/lib/candidate-form-utils';
 
@@ -146,50 +146,37 @@ export default function HomePage() {
     filters.edad
   ]);
 
-  // Hooks para base de datos
-  const { data: candidates = [], isLoading, error } = useCandidates(apiFilters);
-  const createCandidateMutation = useCreateCandidate();
-  const updateCandidateMutation = useUpdateCandidate();
-  const deleteCandidateMutation = useDeleteCandidate();
+  // Hooks para base de datos - temporalmente deshabilitado para debug
+  // const { data: candidates = [], isLoading, error } = useCandidates(apiFilters);
+  // const createCandidateMutation = useCreateCandidate();
+  // const updateCandidateMutation = useUpdateCandidate();
+  // const deleteCandidateMutation = useDeleteCandidate();
+
+  // Datos temporales para debug
+  const candidates: any[] = []
+  const isLoading = false
+  const error = null
 
   const handleAddCandidate = useCallback(async (data: CandidateFormData) => {
-    try {
-      await createCandidateMutation.mutateAsync(data);
-      setIsFormOpen(false);
-      setCurrentPage(1);
-    } catch (error) {
-      // El error ya se maneja en el hook
-    }
-  }, [createCandidateMutation]);
+    // Temporalmente deshabilitado para debug
+    console.log('Add candidate:', data)
+    setIsFormOpen(false);
+    setCurrentPage(1);
+  }, []);
 
   const handleUpdateCandidate = useCallback(async (data: CandidateFormData) => {
-    if (!editingCandidate) return;
-    try {
-      await updateCandidateMutation.mutateAsync({
-        id: editingCandidate.id,
-        data
-      });
-      setIsFormOpen(false);
-      setEditingCandidate(null);
-    } catch (error) {
-      // El error ya se maneja en el hook
-    }
-  }, [editingCandidate, updateCandidateMutation]);
+    // Temporalmente deshabilitado para debug
+    console.log('Update candidate:', data)
+    setIsFormOpen(false);
+    setEditingCandidate(null);
+  }, [editingCandidate]);
 
   const handleDeleteCandidate = useCallback(async (candidateId: string) => {
     if (window.confirm("¿Está seguro de que desea eliminar este candidato?")) {
-      try {
-        await deleteCandidateMutation.mutateAsync(candidateId);
-        // Ajustar página si es necesario
-        const newTotalPages = Math.max(1, Math.ceil((candidates.length - 1) / ITEMS_PER_PAGE));
-        if (currentPage > newTotalPages) {
-          setCurrentPage(newTotalPages);
-        }
-      } catch (error) {
-        // El error ya se maneja en el hook
-      }
+      // Temporalmente deshabilitado para debug
+      console.log('Delete candidate:', candidateId)
     }
-  }, [deleteCandidateMutation, candidates.length, currentPage]);
+  }, []);
 
   const openFormForEdit = useCallback((candidate: Candidate) => {
     setEditingCandidate(candidate);
@@ -364,7 +351,7 @@ export default function HomePage() {
             <DynamicCandidateForm
               onSubmit={editingCandidate ? handleUpdateCandidate : handleAddCandidate}
               initialData={candidateFormData}
-              isSubmitting={createCandidateMutation.isPending || updateCandidateMutation.isPending}
+              isSubmitting={false}
             />
           )}
         </DialogContent>

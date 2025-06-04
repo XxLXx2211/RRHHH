@@ -49,6 +49,7 @@ class RealTimeChatEvents {
 
   // Broadcast message to all connected clients
   broadcastMessage(message: any) {
+    console.log(`[REAL-TIME] Broadcasting new message:`, message.id)
     this.emit('new_message', message)
   }
 
@@ -98,16 +99,18 @@ class ChatMessageStore {
     if (!this.messages.has(roomId)) {
       this.messages.set(roomId, [])
     }
-    
+
     const roomMessages = this.messages.get(roomId)!
     roomMessages.push(message)
-    
+
+    console.log(`[MESSAGE STORE] Added message ${message.id} to room ${roomId}. Total messages in room: ${roomMessages.length}`)
+
     // Sort by timestamp
     roomMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    
+
     // Broadcast to all connected clients
     realTimeChatEvents.broadcastMessage(message)
-    
+
     return message
   }
 

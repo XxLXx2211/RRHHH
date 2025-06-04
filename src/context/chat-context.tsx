@@ -83,16 +83,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const loadMessages = async (roomId: string) => {
     try {
+      console.log(`[CHAT CONTEXT] Loading messages for room: ${roomId}`)
       const response = await fetch(`/api/chat/messages?roomId=${roomId}`)
       if (response.ok) {
         const data = await response.json()
+        console.log(`[CHAT CONTEXT] Loaded ${data.length} messages for room ${roomId}`)
         setMessages(data.map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         })))
+      } else {
+        console.error(`[CHAT CONTEXT] Failed to load messages: ${response.status}`)
       }
     } catch (error) {
-      console.error('Error loading messages:', error)
+      console.error('[CHAT CONTEXT] Error loading messages:', error)
     }
   }
 
@@ -242,11 +246,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
         switch (data.type) {
           case 'new_message':
+            console.log(`[CHAT CONTEXT] Received new message via SSE:`, data.data.id)
             setMessages(prev => {
               // Avoid duplicates
               const exists = prev.some(msg => msg.id === data.data.id)
-              if (exists) return prev
+              if (exists) {
+                console.log(`[CHAT CONTEXT] Message ${data.data.id} already exists, skipping`)
+                return prev
+              }
 
+              console.log(`[CHAT CONTEXT] Adding new message ${data.data.id} to state`)
               return [...prev, {
                 ...data.data,
                 timestamp: new Date(data.data.timestamp)
@@ -309,6 +318,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     if (!session?.user) return
 
     try {
+      console.log(`[CHAT CONTEXT] Sending message to room ${roomId}:`, content)
       const response = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -321,11 +331,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const newMessage = await response.json()
+        console.log(`[CHAT CONTEXT] Message sent successfully:`, newMessage.id)
         // Message will be added via real-time events, no need to add here
-        console.log('Message sent successfully:', newMessage.id)
+      } else {
+        console.error(`[CHAT CONTEXT] Failed to send message: ${response.status}`)
       }
     } catch (error) {
-      console.error('Error sending message:', error)
+      console.error('[CHAT CONTEXT] Error sending message:', error)
     }
   }
 
