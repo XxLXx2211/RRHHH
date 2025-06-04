@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { ChatRoom, ChatMessage, ChatUser, ChatNotification } from '@/types/chat'
 import { socketClient } from '@/lib/notifications/socket-client'
+import { realTimeChatEvents } from '@/lib/chat/real-time-events'
 
 interface ChatContextType {
   // Rooms
@@ -41,13 +42,35 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chatNotifications, setChatNotifications] = useState<ChatNotification[]>([])
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [eventSource, setEventSource] = useState<EventSource | null>(null)
 
-  // Initialize chat data
+  // Initialize chat data and real-time connection
   useEffect(() => {
     if (session?.user) {
       loadChatRooms()
       loadOnlineUsers()
-      setupSocketListeners()
+      setupRealTimeConnection()
+
+      // Set user online
+      fetch('/api/chat/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'online' })
+      })
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (eventSource) {
+        eventSource.close()
+      }
+      if (session?.user) {
+        fetch('/api/chat/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'offline' })
+        })
+      }
     }
   }, [session])
 
@@ -205,22 +228,81 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const setupSocketListeners = () => {
-    socketClient.on('new_chat_message', (message: ChatMessage) => {
-      setMessages(prev => [...prev, message])
-    })
+  const setupRealTimeConnection = () => {
+    if (eventSource) {
+      eventSource.close()
+    }
 
-    socketClient.on('user_online', (user: ChatUser) => {
-      setOnlineUsers(prev => 
-        prev.map(u => u.id === user.id ? { ...u, isOnline: true, status: user.status } : u)
-      )
-    })
+    const newEventSource = new EventSource('/api/chat/events')
+    setEventSource(newEventSource)
 
-    socketClient.on('user_offline', (userId: string) => {
-      setOnlineUsers(prev => 
-        prev.map(u => u.id === userId ? { ...u, isOnline: false, status: 'offline' } : u)
-      )
-    })
+    newEventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+
+        switch (data.type) {
+          case 'new_message':
+            setMessages(prev => {
+              // Avoid duplicates
+              const exists = prev.some(msg => msg.id === data.data.id)
+              if (exists) return prev
+
+              return [...prev, {
+                ...data.data,
+                timestamp: new Date(data.data.timestamp)
+              }]
+            })
+            break
+
+          case 'message_updated':
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === data.data.id
+                  ? { ...data.data, timestamp: new Date(data.data.timestamp) }
+                  : msg
+              )
+            )
+            break
+
+          case 'message_deleted':
+            setMessages(prev => prev.filter(msg => msg.id !== data.data.messageId))
+            break
+
+          case 'user_status_changed':
+            setOnlineUsers(prev =>
+              prev.map(user =>
+                user.id === data.data.userId
+                  ? { ...user, isOnline: data.data.status === 'online', status: data.data.status }
+                  : user
+              )
+            )
+            break
+
+          case 'connected':
+            console.log('Connected to real-time chat events')
+            break
+
+          case 'heartbeat':
+            // Keep connection alive
+            break
+
+          default:
+            console.log('Unknown event type:', data.type)
+        }
+      } catch (error) {
+        console.error('Error parsing SSE data:', error)
+      }
+    }
+
+    newEventSource.onerror = (error) => {
+      console.error('SSE connection error:', error)
+      // Attempt to reconnect after 5 seconds
+      setTimeout(() => {
+        if (session?.user) {
+          setupRealTimeConnection()
+        }
+      }, 5000)
+    }
   }
 
   const sendMessage = async (content: string, roomId: string) => {
@@ -239,13 +321,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const newMessage = await response.json()
-        setMessages(prev => [...prev, {
-          ...newMessage,
-          timestamp: new Date(newMessage.timestamp)
-        }])
-
-        // Emit to socket for real-time updates
-        socketClient.sendChatMessage(newMessage)
+        // Message will be added via real-time events, no need to add here
+        console.log('Message sent successfully:', newMessage.id)
       }
     } catch (error) {
       console.error('Error sending message:', error)
@@ -265,13 +342,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const updatedMessage = await response.json()
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === messageId
-              ? { ...updatedMessage, timestamp: new Date(updatedMessage.timestamp) }
-              : msg
-          )
-        )
+        // Message will be updated via real-time events, no need to update here
+        console.log('Message updated successfully:', updatedMessage.id)
       }
     } catch (error) {
       console.error('Error editing message:', error)
@@ -285,7 +357,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (response.ok) {
-        setMessages(prev => prev.filter(msg => msg.id !== messageId))
+        // Message will be deleted via real-time events, no need to delete here
+        console.log('Message deleted successfully:', messageId)
       }
     } catch (error) {
       console.error('Error deleting message:', error)

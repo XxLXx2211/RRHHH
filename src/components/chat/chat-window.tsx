@@ -17,6 +17,8 @@ export function ChatWindow() {
   const { data: session } = useSession()
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [typingUsers, setTypingUsers] = useState<string[]>([])
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -39,6 +41,29 @@ export function ChatWindow() {
       e.preventDefault()
       handleSendMessage()
     }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value)
+
+    // Handle typing indicator
+    if (!isTyping && activeRoom) {
+      setIsTyping(true)
+      // In a real implementation, you would send typing status to server
+    }
+
+    // Clear existing timeout
+    if (typingTimeout) {
+      clearTimeout(typingTimeout)
+    }
+
+    // Set new timeout to stop typing indicator
+    const timeout = setTimeout(() => {
+      setIsTyping(false)
+      // In a real implementation, you would send stop typing to server
+    }, 1000)
+
+    setTypingTimeout(timeout)
   }
 
   const getRoleColor = (role: string) => {
@@ -122,9 +147,12 @@ export function ChatWindow() {
       </ScrollArea>
 
       {/* Typing Indicator */}
-      {isTyping && (
+      {typingUsers.length > 0 && (
         <div className="px-3 py-1 text-xs text-muted-foreground">
-          Alguien está escribiendo...
+          {typingUsers.length === 1
+            ? `${typingUsers[0]} está escribiendo...`
+            : `${typingUsers.length} personas están escribiendo...`
+          }
         </div>
       )}
 
@@ -138,7 +166,7 @@ export function ChatWindow() {
           <div className="flex-1 relative">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               placeholder={`Mensaje en ${activeRoom.name}...`}
               className="pr-10"

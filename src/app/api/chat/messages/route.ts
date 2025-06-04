@@ -1,40 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-
-// In-memory storage for chat messages (in production, use a real database)
-let chatMessages: any[] = [
-  {
-    id: '1',
-    content: '¡Bienvenidos al chat interno de CandidatoScope! 🎉',
-    senderId: '1',
-    senderName: 'Administrador',
-    senderRole: 'admin',
-    timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-    chatRoomId: '1',
-    messageType: 'text'
-  },
-  {
-    id: '2',
-    content: 'Perfecto, ya podemos coordinar mejor el proceso de reclutamiento.',
-    senderId: '2',
-    senderName: 'Reclutador',
-    senderRole: 'recruiter',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    chatRoomId: '1',
-    messageType: 'text'
-  },
-  {
-    id: '3',
-    content: 'Excelente herramienta para mantener la comunicación fluida entre equipos.',
-    senderId: '3',
-    senderName: 'María García',
-    senderRole: 'manager',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    chatRoomId: '1',
-    messageType: 'text'
-  }
-]
+import { chatMessageStore, userStatusTracker } from '@/lib/chat/real-time-events'
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,9 +18,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Room ID required' }, { status: 400 })
     }
 
-    // Filter messages by room
-    const roomMessages = chatMessages.filter(msg => msg.chatRoomId === roomId)
-    
+    // Update user's last seen
+    userStatusTracker.updateLastSeen(session.user.id!)
+
+    // Get messages from store
+    const roomMessages = chatMessageStore.getMessages(roomId)
+
     return NextResponse.json(roomMessages)
   } catch (error) {
     console.error('Error fetching messages:', error)
@@ -78,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Create new message
     const newMessage = {
-      id: (chatMessages.length + 1).toString(),
+      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       content,
       senderId: session.user.id!,
       senderName: session.user.name!,
@@ -89,9 +59,13 @@ export async function POST(request: NextRequest) {
       isEdited: false
     }
 
-    chatMessages.push(newMessage)
+    // Add to store (this will broadcast to all connected clients)
+    const savedMessage = chatMessageStore.addMessage(newMessage)
 
-    return NextResponse.json(newMessage, { status: 201 })
+    // Update user status
+    userStatusTracker.setUserOnline(session.user.id!)
+
+    return NextResponse.json(savedMessage, { status: 201 })
   } catch (error) {
     console.error('Error creating message:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -113,27 +87,32 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const messageIndex = chatMessages.findIndex(msg => msg.id === messageId)
-    if (messageIndex === -1) {
+    // Find message in store
+    const allMessages = chatMessageStore.getAllMessages()
+    let foundMessage = null
+
+    for (const [roomId, messages] of allMessages.entries()) {
+      foundMessage = messages.find(msg => msg.id === messageId)
+      if (foundMessage) break
+    }
+
+    if (!foundMessage) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }
 
-    const message = chatMessages[messageIndex]
-    
     // Only allow editing own messages or admin
-    if (message.senderId !== session.user.id && session.user.role !== 'admin') {
+    if (foundMessage.senderId !== session.user.id && session.user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Update message
-    chatMessages[messageIndex] = {
-      ...message,
+    // Update message in store (this will broadcast to all connected clients)
+    const updatedMessage = chatMessageStore.updateMessage(messageId, {
       content,
       isEdited: true,
       editedAt: new Date().toISOString()
-    }
+    })
 
-    return NextResponse.json(chatMessages[messageIndex])
+    return NextResponse.json(updatedMessage)
   } catch (error) {
     console.error('Error updating message:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -155,22 +134,32 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Message ID required' }, { status: 400 })
     }
 
-    const messageIndex = chatMessages.findIndex(msg => msg.id === messageId)
-    if (messageIndex === -1) {
+    // Find message in store
+    const allMessages = chatMessageStore.getAllMessages()
+    let foundMessage = null
+
+    for (const [roomId, messages] of allMessages.entries()) {
+      foundMessage = messages.find(msg => msg.id === messageId)
+      if (foundMessage) break
+    }
+
+    if (!foundMessage) {
       return NextResponse.json({ error: 'Message not found' }, { status: 404 })
     }
 
-    const message = chatMessages[messageIndex]
-    
     // Only allow deleting own messages or admin
-    if (message.senderId !== session.user.id && session.user.role !== 'admin') {
+    if (foundMessage.senderId !== session.user.id && session.user.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Remove message
-    chatMessages.splice(messageIndex, 1)
+    // Delete message from store (this will broadcast to all connected clients)
+    const deleted = chatMessageStore.deleteMessage(messageId)
 
-    return NextResponse.json({ message: 'Message deleted successfully' })
+    if (deleted) {
+      return NextResponse.json({ message: 'Message deleted successfully' })
+    } else {
+      return NextResponse.json({ error: 'Failed to delete message' }, { status: 500 })
+    }
   } catch (error) {
     console.error('Error deleting message:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
