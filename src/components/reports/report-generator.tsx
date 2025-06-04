@@ -49,7 +49,10 @@ export function ReportGenerator() {
       }
 
       const excelData = {
-        summary: reportData.metrics,
+        summary: {
+          ...reportData.metrics,
+          period: reportData.period
+        },
         candidatesBySource: [
           { source: 'LinkedIn', count: 45, percentage: 35.4 },
           { source: 'Portal Web', count: 38, percentage: 29.9 },
