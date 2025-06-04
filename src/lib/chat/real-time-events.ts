@@ -76,16 +76,51 @@ class RealTimeChatEvents {
 
 export const realTimeChatEvents = RealTimeChatEvents.getInstance()
 
-// Global message storage with real-time sync
+// Global message storage with real-time sync and persistence
 class ChatMessageStore {
   private static instance: ChatMessageStore
   private messages: Map<string, any[]> = new Map() // roomId -> messages[]
+  private lastMessageId: number = 0
 
   static getInstance(): ChatMessageStore {
     if (!ChatMessageStore.instance) {
       ChatMessageStore.instance = new ChatMessageStore()
+      // Load from localStorage if available
+      if (typeof window !== 'undefined') {
+        ChatMessageStore.instance.loadFromStorage()
+      }
     }
     return ChatMessageStore.instance
+  }
+
+  // Load messages from localStorage
+  private loadFromStorage() {
+    try {
+      const stored = localStorage.getItem('chat-messages')
+      if (stored) {
+        const data = JSON.parse(stored)
+        this.messages = new Map(data.messages || [])
+        this.lastMessageId = data.lastMessageId || 0
+        console.log('[MESSAGE STORE] Loaded from storage:', this.messages.size, 'rooms')
+      }
+    } catch (error) {
+      console.error('[MESSAGE STORE] Error loading from storage:', error)
+    }
+  }
+
+  // Save messages to localStorage
+  private saveToStorage() {
+    try {
+      if (typeof window !== 'undefined') {
+        const data = {
+          messages: Array.from(this.messages.entries()),
+          lastMessageId: this.lastMessageId
+        }
+        localStorage.setItem('chat-messages', JSON.stringify(data))
+      }
+    } catch (error) {
+      console.error('[MESSAGE STORE] Error saving to storage:', error)
+    }
   }
 
   // Get messages for a room
@@ -100,13 +135,30 @@ class ChatMessageStore {
       this.messages.set(roomId, [])
     }
 
+    // Assign incremental ID if not present
+    if (!message.id || message.id.startsWith('msg_')) {
+      this.lastMessageId++
+      message.id = `msg_${this.lastMessageId}_${Date.now()}`
+    }
+
     const roomMessages = this.messages.get(roomId)!
+
+    // Check for duplicates
+    const exists = roomMessages.find(m => m.id === message.id)
+    if (exists) {
+      console.log(`[MESSAGE STORE] Message ${message.id} already exists, skipping`)
+      return exists
+    }
+
     roomMessages.push(message)
 
     console.log(`[MESSAGE STORE] Added message ${message.id} to room ${roomId}. Total messages in room: ${roomMessages.length}`)
 
     // Sort by timestamp
     roomMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+    // Save to storage
+    this.saveToStorage()
 
     // Broadcast to all connected clients
     realTimeChatEvents.broadcastMessage(message)
@@ -120,6 +172,7 @@ class ChatMessageStore {
       const messageIndex = messages.findIndex(m => m.id === messageId)
       if (messageIndex !== -1) {
         messages[messageIndex] = { ...messages[messageIndex], ...updates }
+        this.saveToStorage()
         realTimeChatEvents.broadcastMessageUpdate(messages[messageIndex])
         return messages[messageIndex]
       }
@@ -133,11 +186,19 @@ class ChatMessageStore {
       const messageIndex = messages.findIndex(m => m.id === messageId)
       if (messageIndex !== -1) {
         messages.splice(messageIndex, 1)
+        this.saveToStorage()
         realTimeChatEvents.broadcastMessageDeletion(messageId)
         return true
       }
     }
     return false
+  }
+
+  // Get messages since timestamp (for polling)
+  getMessagesSince(roomId: string, since: string): any[] {
+    const roomMessages = this.messages.get(roomId) || []
+    const sinceTime = new Date(since).getTime()
+    return roomMessages.filter(msg => new Date(msg.timestamp).getTime() > sinceTime)
   }
 
   // Get all messages (for debugging)

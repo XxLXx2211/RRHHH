@@ -13,7 +13,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export function ChatWindow() {
-  const { activeRoom, messages, sendMessage } = useChat()
+  const { activeRoom, messages, sendMessage, usePolling } = useChat()
   const { data: session } = useSession()
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -105,7 +105,12 @@ export function ChatWindow() {
       <div className="p-3 border-b bg-muted/30">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold">{activeRoom.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold">{activeRoom.name}</h3>
+              <Badge variant={usePolling ? "secondary" : "default"} className="h-4 text-xs">
+                {usePolling ? "Polling" : "Real-time"}
+              </Badge>
+            </div>
             {activeRoom.description && (
               <p className="text-xs text-muted-foreground">{activeRoom.description}</p>
             )}

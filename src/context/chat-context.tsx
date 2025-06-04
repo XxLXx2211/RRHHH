@@ -11,24 +11,25 @@ interface ChatContextType {
   chatRooms: ChatRoom[]
   activeRoom: ChatRoom | null
   setActiveRoom: (room: ChatRoom | null) => void
-  
+
   // Messages
   messages: ChatMessage[]
   sendMessage: (content: string, roomId: string) => Promise<void>
   editMessage: (messageId: string, newContent: string) => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>
-  
+
   // Users
   onlineUsers: ChatUser[]
-  
+
   // Notifications
   chatNotifications: ChatNotification[]
   markNotificationAsRead: (notificationId: string) => void
-  
+
   // UI State
   isChatOpen: boolean
   setIsChatOpen: (open: boolean) => void
   isLoading: boolean
+  usePolling: boolean
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -43,12 +44,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [eventSource, setEventSource] = useState<EventSource | null>(null)
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
+  const [lastPollTime, setLastPollTime] = useState<string>(new Date().toISOString())
+  const [usePolling, setUsePolling] = useState(false)
 
   // Initialize chat data and real-time connection
   useEffect(() => {
     if (session?.user) {
       loadChatRooms()
       loadOnlineUsers()
+
+      // Try SSE first, fallback to polling
       setupRealTimeConnection()
 
       // Set user online
@@ -64,6 +70,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (eventSource) {
         eventSource.close()
       }
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
       if (session?.user) {
         fetch('/api/chat/status', {
           method: 'POST',
@@ -78,8 +87,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (activeRoom && session?.user) {
       loadMessages(activeRoom.id)
+      setLastPollTime(new Date().toISOString())
     }
   }, [activeRoom, session])
+
+  // Setup polling for active room when using polling mode
+  useEffect(() => {
+    if (usePolling && activeRoom && session?.user) {
+      setupPolling()
+    }
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
+    }
+  }, [usePolling, activeRoom, session])
 
   const loadMessages = async (roomId: string) => {
     try {
@@ -232,13 +254,60 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const setupPolling = () => {
+    console.log('[CHAT CONTEXT] Setting up polling fallback')
+    setUsePolling(true)
+
+    if (pollingInterval) {
+      clearInterval(pollingInterval)
+    }
+
+    const interval = setInterval(async () => {
+      if (activeRoom && session?.user) {
+        try {
+          const response = await fetch(`/api/chat/poll?roomId=${activeRoom.id}&since=${lastPollTime}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.messages && data.messages.length > 0) {
+              console.log(`[CHAT CONTEXT] Polling found ${data.messages.length} new messages`)
+              setMessages(prev => {
+                const newMessages = data.messages.filter((newMsg: any) =>
+                  !prev.some(existingMsg => existingMsg.id === newMsg.id)
+                )
+                return [...prev, ...newMessages.map((msg: any) => ({
+                  ...msg,
+                  timestamp: new Date(msg.timestamp)
+                }))]
+              })
+            }
+            setLastPollTime(data.timestamp)
+          }
+        } catch (error) {
+          console.error('[CHAT CONTEXT] Polling error:', error)
+        }
+      }
+    }, 2000) // Poll every 2 seconds
+
+    setPollingInterval(interval)
+  }
+
   const setupRealTimeConnection = () => {
+    // Try SSE first
     if (eventSource) {
       eventSource.close()
     }
 
+    console.log('[CHAT CONTEXT] Attempting SSE connection')
     const newEventSource = new EventSource('/api/chat/events')
     setEventSource(newEventSource)
+
+    let sseConnected = false
+
+    newEventSource.onopen = () => {
+      console.log('[CHAT CONTEXT] SSE connection opened')
+      sseConnected = true
+      setUsePolling(false)
+    }
 
     newEventSource.onmessage = (event) => {
       try {
@@ -288,7 +357,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             break
 
           case 'connected':
-            console.log('Connected to real-time chat events')
+            console.log('[CHAT CONTEXT] Connected to real-time chat events via SSE')
             break
 
           case 'heartbeat':
@@ -296,22 +365,38 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             break
 
           default:
-            console.log('Unknown event type:', data.type)
+            console.log('[CHAT CONTEXT] Unknown event type:', data.type)
         }
       } catch (error) {
-        console.error('Error parsing SSE data:', error)
+        console.error('[CHAT CONTEXT] Error parsing SSE data:', error)
       }
     }
 
     newEventSource.onerror = (error) => {
-      console.error('SSE connection error:', error)
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        if (session?.user) {
-          setupRealTimeConnection()
-        }
-      }, 5000)
+      console.error('[CHAT CONTEXT] SSE connection error:', error)
+
+      if (!sseConnected) {
+        console.log('[CHAT CONTEXT] SSE failed to connect, falling back to polling')
+        newEventSource.close()
+        setupPolling()
+      } else {
+        // Attempt to reconnect SSE after 5 seconds
+        setTimeout(() => {
+          if (session?.user && !usePolling) {
+            setupRealTimeConnection()
+          }
+        }, 5000)
+      }
     }
+
+    // Fallback to polling after 10 seconds if SSE doesn't connect
+    setTimeout(() => {
+      if (!sseConnected && !usePolling) {
+        console.log('[CHAT CONTEXT] SSE timeout, falling back to polling')
+        newEventSource.close()
+        setupPolling()
+      }
+    }, 10000)
   }
 
   const sendMessage = async (content: string, roomId: string) => {
@@ -332,7 +417,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         const newMessage = await response.json()
         console.log(`[CHAT CONTEXT] Message sent successfully:`, newMessage.id)
-        // Message will be added via real-time events, no need to add here
+
+        // If using polling, add message immediately for better UX
+        if (usePolling) {
+          setMessages(prev => {
+            const exists = prev.some(msg => msg.id === newMessage.id)
+            if (!exists) {
+              return [...prev, {
+                ...newMessage,
+                timestamp: new Date(newMessage.timestamp)
+              }]
+            }
+            return prev
+          })
+        }
+        // If using SSE, message will be added via real-time events
       } else {
         console.error(`[CHAT CONTEXT] Failed to send message: ${response.status}`)
       }
@@ -398,7 +497,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     markNotificationAsRead,
     isChatOpen,
     setIsChatOpen,
-    isLoading
+    isLoading,
+    usePolling
   }
 
   return (
