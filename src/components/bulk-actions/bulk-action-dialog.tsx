@@ -212,7 +212,7 @@ export function BulkActionDialog({
               <Checkbox
                 id="notification"
                 checked={sendNotification}
-                onCheckedChange={setSendNotification}
+                onCheckedChange={(checked) => setSendNotification(checked === true)}
               />
               <Label htmlFor="notification" className="text-sm">
                 Enviar notificación automática
