@@ -1,12 +1,16 @@
 
 {
-  "name": "CandidatoScope",
+  "name": "CandidatoScope - Sistema de Gestión de Candidatos",
   "short_name": "CandidatoScope",
-  "description": "Candidate Management System",
+  "description": "Sistema avanzado de gestión de candidatos con IA, reportes automáticos, chat interno y notificaciones en tiempo real",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#212629",
   "theme_color": "#70A7E3",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es-ES",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "/app-icon.ico",
@@ -32,5 +36,47 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Candidatos",
+      "short_name": "Candidatos",
+      "description": "Ver lista de candidatos",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Reportes",
+      "short_name": "Reportes",
+      "description": "Generar reportes automáticos",
+      "url": "/reports",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["application/pdf", ".pdf", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"]
+        }
+      ]
+    }
+  }
 }

@@ -3,16 +3,18 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Briefcase, Moon, Sun, FileText, Users } from 'lucide-react';
+import { Briefcase, Moon, Sun, FileText, Users, MessageCircle } from 'lucide-react';
 import { useCustomTheme } from '@/context/theme-context';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/auth/user-nav';
 import { NotificationCenter } from '@/components/notifications/notification-center';
 import { usePathname } from 'next/navigation';
+import { useChat } from '@/context/chat-context';
 
 export const AppHeader = React.memo(function AppHeader() {
   const { theme, toggleTheme } = useCustomTheme()
   const pathname = usePathname()
+  const { setIsChatOpen, chatNotifications } = useChat()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,6 +54,18 @@ export const AppHeader = React.memo(function AppHeader() {
         </div>
         <div className="flex items-center space-x-2">
           <NotificationCenter />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsChatOpen(true)}
+            aria-label="Abrir chat"
+            className="relative"
+          >
+            <MessageCircle className="h-5 w-5" />
+            {chatNotifications.filter(n => !n.isRead).length > 0 && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full" />
+            )}
+          </Button>
           <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
             {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
           </Button>

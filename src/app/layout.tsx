@@ -6,6 +6,10 @@ import { ThemeProvider } from '@/context/theme-context';
 import { QueryProvider } from '@/context/query-provider';
 import { ClientLayout } from '@/components/client-layout';
 import { AuthProvider } from '@/components/auth/auth-provider';
+import { ChatProvider } from '@/context/chat-context';
+import { ChatWidget } from '@/components/chat/chat-widget';
+import { NotificationProvider } from '@/context/notification-context';
+import { InstallPrompt } from '@/components/pwa/install-prompt';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -99,10 +103,16 @@ export default function RootLayout({
         <AuthProvider>
           <QueryProvider>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-              <ClientLayout>
-                {children}
-              </ClientLayout>
-              <Toaster />
+              <NotificationProvider>
+                <ChatProvider>
+                  <ClientLayout>
+                    {children}
+                  </ClientLayout>
+                  <ChatWidget />
+                  <InstallPrompt />
+                  <Toaster />
+                </ChatProvider>
+              </NotificationProvider>
             </ThemeProvider>
           </QueryProvider>
         </AuthProvider>
