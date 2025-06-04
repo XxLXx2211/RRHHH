@@ -27,25 +27,29 @@ export function ReportGenerator() {
 
   const handleGenerateReport = async () => {
     setIsGenerating(true)
-    
+
     try {
-      // Simular datos del reporte (en producción vendría de la API)
+      // Obtener datos reales de la API
+      const params = new URLSearchParams({
+        type: reportType,
+        ...(startDate && { startDate: startDate.toISOString() }),
+        ...(endDate && { endDate: endDate.toISOString() })
+      })
+
+      const response = await fetch(`/api/reports?${params}`)
+      if (!response.ok) {
+        throw new Error('Error al obtener datos del reporte')
+      }
+
+      const apiData = await response.json()
+
+      // Formatear datos para el generador de PDF
       const reportData = {
-        title: 'Reporte Mensual de Reclutamiento',
-        period: `${formatDate(startDate || new Date(), 'MMMM yyyy', { locale: es })}`,
-        metrics: {
-          totalCandidates: 127,
-          hired: 8,
-          avgProcessTime: 18.5,
-          satisfactionRate: 85
-        },
+        title: `Reporte ${reportType === 'weekly' ? 'Semanal' : reportType === 'monthly' ? 'Mensual' : reportType === 'quarterly' ? 'Trimestral' : 'Personalizado'} de Reclutamiento`,
+        period: apiData.summary.period,
+        metrics: apiData.summary,
         chartData: [],
-        detailedData: [
-          { position: 'Desarrollador Senior', candidates: 45, hired: 2, avgTime: 22 },
-          { position: 'Analista de Datos', candidates: 32, hired: 3, avgTime: 15 },
-          { position: 'Diseñador UX', candidates: 28, hired: 2, avgTime: 20 },
-          { position: 'Project Manager', candidates: 22, hired: 1, avgTime: 25 }
-        ]
+        detailedData: apiData.candidatesByPosition
       }
 
       const excelData = {
@@ -53,19 +57,10 @@ export function ReportGenerator() {
           ...reportData.metrics,
           period: reportData.period
         },
-        candidatesBySource: [
-          { source: 'LinkedIn', count: 45, percentage: 35.4 },
-          { source: 'Portal Web', count: 38, percentage: 29.9 },
-          { source: 'Referidos', count: 25, percentage: 19.7 },
-          { source: 'Otros', count: 19, percentage: 15.0 }
-        ],
-        candidatesByPosition: reportData.detailedData,
-        recruiterPerformance: [
-          { recruiter: 'María García', candidates: 45, hired: 4, avgResponseTime: 2.5, satisfaction: 88 },
-          { recruiter: 'Juan López', candidates: 38, hired: 3, avgResponseTime: 3.2, satisfaction: 82 },
-          { recruiter: 'Ana Martín', candidates: 44, hired: 1, avgResponseTime: 1.8, satisfaction: 90 }
-        ],
-        rawData: []
+        candidatesBySource: apiData.candidatesBySource,
+        candidatesByPosition: apiData.candidatesByPosition,
+        recruiterPerformance: apiData.recruiterPerformance,
+        rawData: apiData.rawData
       }
 
       if (format === 'pdf' || format === 'both') {
