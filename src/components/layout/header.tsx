@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Briefcase, Moon, Sun } from 'lucide-react';
 import { useCustomTheme } from '@/context/theme-context';
 import { Button } from '@/components/ui/button';
+import { UserNav } from '@/components/auth/user-nav';
+import { NotificationCenter } from '@/components/notifications/notification-center';
 
 export const AppHeader = React.memo(function AppHeader() {
   const { theme, toggleTheme } = useCustomTheme(); 
@@ -19,9 +21,13 @@ export const AppHeader = React.memo(function AppHeader() {
             CandidatoScope
           </span>
         </Link>
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center space-x-2">
+          <NotificationCenter />
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+          <UserNav />
+        </div>
       </div>
     </header>
   );

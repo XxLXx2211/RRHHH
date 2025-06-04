@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/context/theme-context';
 import { QueryProvider } from '@/context/query-provider';
 import { ClientLayout } from '@/components/client-layout';
+import { AuthProvider } from '@/components/auth/auth-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -95,14 +96,16 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`} suppressHydrationWarning>
-        <QueryProvider>
-          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <ClientLayout>
-              {children}
-            </ClientLayout>
-            <Toaster />
-          </ThemeProvider>
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+              <ClientLayout>
+                {children}
+              </ClientLayout>
+              <Toaster />
+            </ThemeProvider>
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );
