@@ -69,40 +69,8 @@ export function ChatWindow() {
     }
   }
 
-  // Mock messages for the active room
-  const roomMessages = [
-    {
-      id: '1',
-      content: '¡Bienvenidos al chat interno de CandidatoScope! 🎉',
-      senderId: '1',
-      senderName: 'Administrador',
-      senderRole: 'admin' as const,
-      timestamp: new Date(Date.now() - 60 * 60 * 1000),
-      chatRoomId: activeRoom?.id || '',
-      messageType: 'text' as const
-    },
-    {
-      id: '2',
-      content: 'Perfecto, ya podemos coordinar mejor el proceso de reclutamiento.',
-      senderId: '2',
-      senderName: 'Reclutador',
-      senderRole: 'recruiter' as const,
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      chatRoomId: activeRoom?.id || '',
-      messageType: 'text' as const
-    },
-    {
-      id: '3',
-      content: 'Excelente herramienta para mantener la comunicación fluida entre equipos.',
-      senderId: '3',
-      senderName: 'María García',
-      senderRole: 'manager' as const,
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
-      chatRoomId: activeRoom?.id || '',
-      messageType: 'text' as const
-    },
-    ...messages.filter(m => m.chatRoomId === activeRoom?.id)
-  ]
+  // Filter messages for the active room
+  const roomMessages = messages.filter(m => m.chatRoomId === activeRoom?.id)
 
   if (!activeRoom) return null
 

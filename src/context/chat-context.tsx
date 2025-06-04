@@ -51,33 +51,57 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session])
 
+  // Load messages when active room changes
+  useEffect(() => {
+    if (activeRoom && session?.user) {
+      loadMessages(activeRoom.id)
+    }
+  }, [activeRoom, session])
+
+  const loadMessages = async (roomId: string) => {
+    try {
+      const response = await fetch(`/api/chat/messages?roomId=${roomId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(data.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        })))
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error)
+    }
+  }
+
   const loadChatRooms = async () => {
     setIsLoading(true)
     try {
-      // Mock data - in real app would fetch from API
+      // Load users from API to populate chat rooms
+      const usersResponse = await fetch('/api/users')
+      const users = usersResponse.ok ? await usersResponse.json() : []
+
+      // Create chat rooms with real users
       const mockRooms: ChatRoom[] = [
         {
           id: '1',
           name: 'General',
           description: 'Canal general para toda la empresa',
           type: 'general',
-          participants: [
-            {
-              userId: '1',
-              userName: 'Administrador',
-              userRole: 'admin',
-              joinedAt: new Date(),
-              isOnline: true,
-              lastSeen: new Date(),
-              permissions: {
-                canSendMessages: true,
-                canDeleteMessages: true,
-                canEditMessages: true,
-                canManageParticipants: true,
-                canArchiveRoom: true
-              }
+          participants: users.map((user: any) => ({
+            userId: user.id,
+            userName: user.name,
+            userRole: user.role,
+            joinedAt: new Date(user.createdAt),
+            isOnline: user.isActive,
+            lastSeen: new Date(user.lastLogin || user.createdAt),
+            permissions: {
+              canSendMessages: true,
+              canDeleteMessages: user.role === 'admin',
+              canEditMessages: true,
+              canManageParticipants: user.role === 'admin',
+              canArchiveRoom: user.role === 'admin'
             }
-          ],
+          })),
           createdBy: '1',
           createdAt: new Date(),
           isArchived: false,
@@ -94,7 +118,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           name: 'Reclutamiento',
           description: 'Canal para el equipo de reclutamiento',
           type: 'department',
-          participants: [],
+          participants: users.filter((user: any) => user.role === 'recruiter' || user.role === 'manager').map((user: any) => ({
+            userId: user.id,
+            userName: user.name,
+            userRole: user.role,
+            joinedAt: new Date(user.createdAt),
+            isOnline: user.isActive,
+            lastSeen: new Date(user.lastLogin || user.createdAt),
+            permissions: {
+              canSendMessages: true,
+              canDeleteMessages: false,
+              canEditMessages: true,
+              canManageParticipants: false,
+              canArchiveRoom: false
+            }
+          })),
           createdBy: '1',
           createdAt: new Date(),
           isArchived: false,
@@ -111,7 +149,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           name: 'Directivos',
           description: 'Canal exclusivo para directivos',
           type: 'private',
-          participants: [],
+          participants: users.filter((user: any) => user.role === 'admin' || user.role === 'hr_director').map((user: any) => ({
+            userId: user.id,
+            userName: user.name,
+            userRole: user.role,
+            joinedAt: new Date(user.createdAt),
+            isOnline: user.isActive,
+            lastSeen: new Date(user.lastLogin || user.createdAt),
+            permissions: {
+              canSendMessages: true,
+              canDeleteMessages: true,
+              canEditMessages: true,
+              canManageParticipants: true,
+              canArchiveRoom: true
+            }
+          })),
           createdBy: '1',
           createdAt: new Date(),
           isArchived: false,
@@ -134,37 +186,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const loadOnlineUsers = async () => {
     try {
-      // Mock data - in real app would fetch from API
-      const mockUsers: ChatUser[] = [
-        {
-          id: '1',
-          name: 'Administrador',
-          email: 'admin@candidatoscope.com',
-          role: 'admin',
-          isOnline: true,
-          lastSeen: new Date(),
-          status: 'available'
-        },
-        {
-          id: '2',
-          name: 'Reclutador',
-          email: 'recruiter@candidatoscope.com',
-          role: 'recruiter',
-          isOnline: true,
-          lastSeen: new Date(),
-          status: 'busy'
-        },
-        {
-          id: '3',
-          name: 'María García',
-          email: 'maria@candidatoscope.com',
-          role: 'manager',
-          isOnline: false,
-          lastSeen: new Date(Date.now() - 30 * 60 * 1000),
-          status: 'away'
-        }
-      ]
-      setOnlineUsers(mockUsers)
+      const response = await fetch('/api/users')
+      if (response.ok) {
+        const users = await response.json()
+        const chatUsers: ChatUser[] = users.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isOnline: user.isActive,
+          lastSeen: new Date(user.lastLogin || user.createdAt),
+          status: user.isActive ? 'available' : 'offline'
+        }))
+        setOnlineUsers(chatUsers)
+      }
     } catch (error) {
       console.error('Error loading online users:', error)
     }
@@ -191,35 +226,70 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const sendMessage = async (content: string, roomId: string) => {
     if (!session?.user) return
 
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content,
-      senderId: session.user.id!,
-      senderName: session.user.name!,
-      senderRole: session.user.role as any,
-      timestamp: new Date(),
-      chatRoomId: roomId,
-      messageType: 'text'
-    }
+    try {
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          chatRoomId: roomId,
+          messageType: 'text'
+        })
+      })
 
-    setMessages(prev => [...prev, newMessage])
-    
-    // In real app, would send to server via socket
-    socketClient.sendChatMessage(newMessage)
+      if (response.ok) {
+        const newMessage = await response.json()
+        setMessages(prev => [...prev, {
+          ...newMessage,
+          timestamp: new Date(newMessage.timestamp)
+        }])
+
+        // Emit to socket for real-time updates
+        socketClient.sendChatMessage(newMessage)
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+    }
   }
 
   const editMessage = async (messageId: string, newContent: string) => {
-    setMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, content: newContent, isEdited: true, editedAt: new Date() }
-          : msg
-      )
-    )
+    try {
+      const response = await fetch('/api/chat/messages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          content: newContent
+        })
+      })
+
+      if (response.ok) {
+        const updatedMessage = await response.json()
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === messageId
+              ? { ...updatedMessage, timestamp: new Date(updatedMessage.timestamp) }
+              : msg
+          )
+        )
+      }
+    } catch (error) {
+      console.error('Error editing message:', error)
+    }
   }
 
   const deleteMessage = async (messageId: string) => {
-    setMessages(prev => prev.filter(msg => msg.id !== messageId))
+    try {
+      const response = await fetch(`/api/chat/messages?messageId=${messageId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setMessages(prev => prev.filter(msg => msg.id !== messageId))
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error)
+    }
   }
 
   const markNotificationAsRead = (notificationId: string) => {

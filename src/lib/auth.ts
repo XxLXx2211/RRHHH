@@ -2,8 +2,8 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { UserRole, UserDepartment } from '@/types/auth'
 
-// Demo users for testing
-const DEMO_USERS = [
+// Dynamic users storage (in production, this would be in a database)
+let DEMO_USERS = [
   {
     id: '1',
     email: 'admin@candidatoscope.com',
@@ -21,8 +21,37 @@ const DEMO_USERS = [
     role: 'recruiter' as UserRole,
     department: 'hr' as UserDepartment,
     avatar: undefined
+  },
+  {
+    id: '3',
+    email: 'manager@candidatoscope.com',
+    password: 'manager123',
+    name: 'María García',
+    role: 'manager' as UserRole,
+    department: 'hr' as UserDepartment,
+    avatar: undefined
   }
 ]
+
+// Function to add new user to auth system
+export function addUserToAuth(userData: {
+  id: string
+  email: string
+  password: string
+  name: string
+  role: UserRole
+  department: UserDepartment
+}) {
+  DEMO_USERS.push({
+    ...userData,
+    avatar: undefined
+  })
+}
+
+// Function to get all auth users (for API)
+export function getAuthUsers() {
+  return DEMO_USERS
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [

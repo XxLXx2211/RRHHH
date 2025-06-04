@@ -40,7 +40,7 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <div className={`bg-background border rounded-lg shadow-xl transition-all duration-300 ${
-        isMinimized ? 'w-80 h-12' : 'w-96 h-[600px]'
+        isMinimized ? 'w-80 h-12' : 'w-[500px] h-[700px]'
       }`}>
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b bg-muted/50 rounded-t-lg">
@@ -82,9 +82,9 @@ export function ChatWidget() {
 
         {/* Content */}
         {!isMinimized && (
-          <div className="flex h-[calc(600px-49px)]">
+          <div className="flex h-[calc(700px-49px)]">
             {/* Sidebar */}
-            <div className="w-1/3 border-r flex flex-col">
+            <div className="w-2/5 border-r flex flex-col">
               <div className="flex-1 overflow-hidden">
                 <ChatRoomList />
               </div>

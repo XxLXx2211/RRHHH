@@ -3,18 +3,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Briefcase, Moon, Sun, FileText, Users, MessageCircle } from 'lucide-react';
+import { Briefcase, Moon, Sun, FileText, Users, MessageCircle, Shield } from 'lucide-react';
 import { useCustomTheme } from '@/context/theme-context';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/auth/user-nav';
 import { NotificationCenter } from '@/components/notifications/notification-center';
 import { usePathname } from 'next/navigation';
 import { useChat } from '@/context/chat-context';
+import { useSession } from 'next-auth/react';
 
 export const AppHeader = React.memo(function AppHeader() {
   const { theme, toggleTheme } = useCustomTheme()
   const pathname = usePathname()
   const { setIsChatOpen, chatNotifications } = useChat()
+  const { data: session } = useSession()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -50,6 +52,19 @@ export const AppHeader = React.memo(function AppHeader() {
               <FileText className="h-4 w-4" />
               <span>Reportes</span>
             </Link>
+            {session?.user?.role === 'admin' && (
+              <Link
+                href="/admin"
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === '/admin'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            )}
           </nav>
         </div>
         <div className="flex items-center space-x-2">
