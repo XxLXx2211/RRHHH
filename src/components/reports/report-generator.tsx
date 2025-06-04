@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarIcon, Download, FileText, Table } from 'lucide-react'
-import { format } from 'date-fns'
+import { format as formatDate } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { generatePDFReport } from '@/lib/reports/pdf-generator'
 import { generateExcelReport } from '@/lib/reports/excel-generator'
@@ -32,7 +32,7 @@ export function ReportGenerator() {
       // Simular datos del reporte (en producción vendría de la API)
       const reportData = {
         title: 'Reporte Mensual de Reclutamiento',
-        period: `${format(startDate || new Date(), 'MMMM yyyy', { locale: es })}`,
+        period: `${formatDate(startDate || new Date(), 'MMMM yyyy', { locale: es })}`,
         metrics: {
           totalCandidates: 127,
           hired: 8,
@@ -153,7 +153,7 @@ export function ReportGenerator() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'PPP', { locale: es }) : 'Seleccionar fecha'}
+                    {startDate ? formatDate(startDate, 'PPP', { locale: es }) : 'Seleccionar fecha'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -173,7 +173,7 @@ export function ReportGenerator() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'PPP', { locale: es }) : 'Seleccionar fecha'}
+                    {endDate ? formatDate(endDate, 'PPP', { locale: es }) : 'Seleccionar fecha'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
