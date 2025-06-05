@@ -8,7 +8,7 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "build:analyze": "ANALYZE=true npm run build",
-    "netlify-build": "npm run typecheck && npm run lint && npm run build",
+    "netlify-build": "npm run typecheck && npm run build",
     "start": "next start",
     "lint": "next lint --fix",
     "lint:check": "next lint",

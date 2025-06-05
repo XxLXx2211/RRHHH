@@ -40,14 +40,14 @@ export function UserManagement() {
     password: ''
   })
 
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
   // Only show for admin users
   if (session?.user?.role !== 'admin') {
     return null
   }
-
-  useEffect(() => {
-    loadUsers()
-  }, [])
 
   const loadUsers = async () => {
     try {
