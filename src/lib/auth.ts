@@ -107,9 +107,16 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
+    async redirect({ url, baseUrl }) {
+      // Permite redirecciones relativas
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      // Permite redirecciones al mismo dominio
+      else if (new URL(url).origin === baseUrl) return url
+      // Redirección por defecto
+      return baseUrl
+    },
   },
   pages: {
     signIn: '/auth/signin',
-    signOut: '/auth/signout',
   },
 }
