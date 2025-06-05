@@ -11,47 +11,59 @@ export class CandidateService {
     page?: number
     limit?: number
   } = {}) {
-    let query = supabase.from('candidates').select('*')
+    console.log('[CANDIDATE SERVICE] Getting candidates with filters:', filters)
 
-    // Aplicar filtros
-    if (filters.search) {
-      query = query.or(`nombres_apellidos.ilike.%${filters.search}%,cedula.ilike.%${filters.search}%,experiencia.ilike.%${filters.search}%,comentarios.ilike.%${filters.search}%,telefonos.ilike.%${filters.search}%,direccion.ilike.%${filters.search}%,pds_asignado.ilike.%${filters.search}%`)
+    try {
+      // Start with simple query
+      let query = supabase.from('candidates').select('*')
+
+      // Apply filters only if they exist and are not empty
+      if (filters.search && filters.search.trim()) {
+        // Simplified search - just search in main fields
+        query = query.or(`nombres_apellidos.ilike.%${filters.search}%,cedula.ilike.%${filters.search}%`)
+      }
+
+      if (filters.estatus && filters.estatus !== 'Todos') {
+        query = query.eq('estatus', filters.estatus)
+      }
+
+      if (filters.area_interes && filters.area_interes !== 'Todos') {
+        query = query.eq('area_interes', filters.area_interes)
+      }
+
+      if (filters.ubicacion && filters.ubicacion !== 'Todas') {
+        query = query.eq('ubicacion', filters.ubicacion)
+      }
+
+      // Simple pagination
+      const limit = filters.limit || 50
+      if (limit > 0) {
+        query = query.limit(limit)
+      }
+
+      if (filters.page && filters.page > 1) {
+        const offset = (filters.page - 1) * limit
+        query = query.range(offset, offset + limit - 1)
+      }
+
+      // Order by creation date
+      query = query.order('created_at', { ascending: false })
+
+      console.log('[CANDIDATE SERVICE] Executing query...')
+      const { data, error } = await query
+
+      if (error) {
+        console.error('[CANDIDATE SERVICE] Query error:', error)
+        throw new Error(`Error al obtener candidatos: ${error.message}`)
+      }
+
+      console.log('[CANDIDATE SERVICE] Query successful, found:', data?.length || 0, 'candidates')
+      return data as SupabaseCandidate[]
+
+    } catch (error) {
+      console.error('[CANDIDATE SERVICE] Unexpected error:', error)
+      throw error
     }
-
-    if (filters.estatus) {
-      query = query.eq('estatus', filters.estatus)
-    }
-
-    if (filters.area_interes) {
-      query = query.eq('area_interes', filters.area_interes)
-    }
-
-    if (filters.ubicacion) {
-      query = query.eq('ubicacion', filters.ubicacion)
-    }
-
-    // Paginación
-    const limit = filters.limit || 50
-    const offset = filters.page ? (filters.page - 1) * limit : 0
-
-    if (limit) {
-      query = query.limit(limit)
-    }
-
-    if (offset) {
-      query = query.range(offset, offset + limit - 1)
-    }
-
-    // Ordenar por fecha de creación
-    query = query.order('created_at', { ascending: false })
-
-    const { data, error } = await query
-
-    if (error) {
-      throw new Error(`Error al obtener candidatos: ${error.message}`)
-    }
-
-    return data as SupabaseCandidate[]
   }
 
   // Obtener candidato por ID

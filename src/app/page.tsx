@@ -14,7 +14,7 @@ import { PlusCircleIcon, Loader2, SparklesIcon } from 'lucide-react';
 import { assessCandidateSuitability, AssessCandidateSuitabilityInput, AssessCandidateSuitabilityOutput } from '@/ai/flows/assess-candidate-suitability';
 
 import { PaginationControls } from '@/components/ui/pagination-controls';
-// import { useCandidates, useCreateCandidate, useUpdateCandidate, useDeleteCandidate } from '@/hooks/use-candidates';
+import { useCandidates, useCreateCandidate, useUpdateCandidate, useDeleteCandidate } from '@/hooks/use-candidates';
 import { normalizeFiltersForApi } from '@/lib/enum-utils';
 import { mapCandidateToFormData } from '@/lib/candidate-form-utils';
 
@@ -146,37 +146,78 @@ export default function HomePage() {
     filters.edad
   ]);
 
-  // Hooks para base de datos - temporalmente deshabilitado para debug
-  // const { data: candidates = [], isLoading, error } = useCandidates(apiFilters);
-  // const createCandidateMutation = useCreateCandidate();
-  // const updateCandidateMutation = useUpdateCandidate();
-  // const deleteCandidateMutation = useDeleteCandidate();
+  // Hooks para base de datos
+  const { data: candidates = [], isLoading, error } = useCandidates(apiFilters);
+  const createCandidateMutation = useCreateCandidate();
+  const updateCandidateMutation = useUpdateCandidate();
+  const deleteCandidateMutation = useDeleteCandidate();
 
-  // Datos temporales para debug
-  const candidates: any[] = []
-  const isLoading = false
-  const error = null
+  // Datos temporales para debug - comentado
+  // const candidates: any[] = []
+  // const isLoading = false
+  // const error = null
 
   const handleAddCandidate = useCallback(async (data: CandidateFormData) => {
-    // Temporalmente deshabilitado para debug
-    console.log('Add candidate:', data)
-    setIsFormOpen(false);
-    setCurrentPage(1);
-  }, []);
+    try {
+      await createCandidateMutation.mutateAsync(data);
+      toast({
+        title: "Candidato agregado",
+        description: "El candidato ha sido agregado exitosamente.",
+      });
+      setIsFormOpen(false);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Error adding candidate:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo agregar el candidato. Intente nuevamente.",
+        variant: "destructive",
+      });
+    }
+  }, [createCandidateMutation, toast]);
 
   const handleUpdateCandidate = useCallback(async (data: CandidateFormData) => {
-    // Temporalmente deshabilitado para debug
-    console.log('Update candidate:', data)
-    setIsFormOpen(false);
-    setEditingCandidate(null);
-  }, [editingCandidate]);
+    if (!editingCandidate) return;
+
+    try {
+      await updateCandidateMutation.mutateAsync({
+        id: editingCandidate.id,
+        data
+      });
+      toast({
+        title: "Candidato actualizado",
+        description: "Los datos del candidato han sido actualizados exitosamente.",
+      });
+      setIsFormOpen(false);
+      setEditingCandidate(null);
+    } catch (error) {
+      console.error('Error updating candidate:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el candidato. Intente nuevamente.",
+        variant: "destructive",
+      });
+    }
+  }, [editingCandidate, updateCandidateMutation, toast]);
 
   const handleDeleteCandidate = useCallback(async (candidateId: string) => {
     if (window.confirm("¿Está seguro de que desea eliminar este candidato?")) {
-      // Temporalmente deshabilitado para debug
-      console.log('Delete candidate:', candidateId)
+      try {
+        await deleteCandidateMutation.mutateAsync(candidateId);
+        toast({
+          title: "Candidato eliminado",
+          description: "El candidato ha sido eliminado exitosamente.",
+        });
+      } catch (error) {
+        console.error('Error deleting candidate:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar el candidato. Intente nuevamente.",
+          variant: "destructive",
+        });
+      }
     }
-  }, []);
+  }, [deleteCandidateMutation, toast]);
 
   const openFormForEdit = useCallback((candidate: Candidate) => {
     setEditingCandidate(candidate);
@@ -351,7 +392,7 @@ export default function HomePage() {
             <DynamicCandidateForm
               onSubmit={editingCandidate ? handleUpdateCandidate : handleAddCandidate}
               initialData={candidateFormData}
-              isSubmitting={false}
+              isSubmitting={editingCandidate ? updateCandidateMutation.isPending : createCandidateMutation.isPending}
             />
           )}
         </DialogContent>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export function ChatWindow() {
-  const { activeRoom, messages, sendMessage, usePolling } = useChat()
+  const { activeRoom, messages, sendMessage, usePolling, forceUpdate } = useChat()
   const { data: session } = useSession()
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -22,12 +22,37 @@ export function ChatWindow() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+      console.log(`[CHAT WINDOW] Scrolled to bottom`)
+    }
   }
+
+  // Filter messages for the active room - moved to useMemo to avoid re-declaration
+  const roomMessages = React.useMemo(() => {
+    return messages.filter(m => m.chatRoomId === activeRoom?.id)
+  }, [messages, activeRoom?.id])
 
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Force re-render when messages change for active room
+  useEffect(() => {
+    if (activeRoom) {
+      console.log(`[CHAT WINDOW] Messages updated for room ${activeRoom.id}:`, roomMessages.length)
+    }
+  }, [roomMessages, activeRoom, forceUpdate])
+
+  // Auto-scroll and force update when new messages arrive
+  useEffect(() => {
+    if (roomMessages.length > 0) {
+      console.log(`[CHAT WINDOW] New messages detected, scrolling to bottom`)
+      setTimeout(() => {
+        scrollToBottom()
+      }, 100) // Small delay to ensure DOM is updated
+    }
+  }, [roomMessages.length, forceUpdate])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeRoom) return
@@ -94,9 +119,6 @@ export function ChatWindow() {
     }
   }
 
-  // Filter messages for the active room
-  const roomMessages = messages.filter(m => m.chatRoomId === activeRoom?.id)
-
   if (!activeRoom) return null
 
   return (
@@ -123,7 +145,7 @@ export function ChatWindow() {
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-3">
-        <div className="space-y-4">
+        <div className="space-y-4" key={`messages-${activeRoom.id}-${forceUpdate}`}>
           {roomMessages.map((message) => (
             <div key={message.id} className="flex gap-3">
               <Avatar className="h-8 w-8">

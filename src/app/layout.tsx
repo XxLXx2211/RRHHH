@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/context/theme-context';
-// import { QueryProvider } from '@/context/query-provider';
+import { QueryProvider } from '@/context/query-provider';
 import { ClientLayout } from '@/components/client-layout';
 import { AuthProvider } from '@/components/auth/auth-provider';
 import { ChatProvider } from '@/context/chat-context';
@@ -104,18 +104,20 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`} suppressHydrationWarning>
         <AuthProvider>
-          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <NotificationProvider>
-              <ChatProvider>
-                <ClientLayout>
-                  {children}
-                </ClientLayout>
-                <ChatWidget />
-                <InstallPrompt />
-                <Toaster />
-              </ChatProvider>
-            </NotificationProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+              <NotificationProvider>
+                <ChatProvider>
+                  <ClientLayout>
+                    {children}
+                  </ClientLayout>
+                  <ChatWidget />
+                  <InstallPrompt />
+                  <Toaster />
+                </ChatProvider>
+              </NotificationProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

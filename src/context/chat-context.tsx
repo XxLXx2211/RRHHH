@@ -30,6 +30,7 @@ interface ChatContextType {
   setIsChatOpen: (open: boolean) => void
   isLoading: boolean
   usePolling: boolean
+  forceUpdate: number
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -47,6 +48,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
   const [lastPollTime, setLastPollTime] = useState<string>(new Date().toISOString())
   const [usePolling, setUsePolling] = useState(false)
+  const [forceUpdate, setForceUpdate] = useState(0)
 
   // Initialize chat data and real-time connection
   useEffect(() => {
@@ -102,6 +104,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [usePolling, activeRoom, session])
+
+  // Helper function to force component updates
+  const triggerUpdate = () => {
+    setForceUpdate(prev => prev + 1)
+  }
 
   const loadMessages = async (roomId: string) => {
     try {
@@ -274,10 +281,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 const newMessages = data.messages.filter((newMsg: any) =>
                   !prev.some(existingMsg => existingMsg.id === newMsg.id)
                 )
-                return [...prev, ...newMessages.map((msg: any) => ({
-                  ...msg,
-                  timestamp: new Date(msg.timestamp)
-                }))]
+                if (newMessages.length > 0) {
+                  const updatedMessages = [...prev, ...newMessages.map((msg: any) => ({
+                    ...msg,
+                    timestamp: new Date(msg.timestamp)
+                  }))]
+
+                  // Force immediate update by creating a new array reference
+                  triggerUpdate()
+                  return updatedMessages.slice()
+                }
+                return prev
               })
             }
             setLastPollTime(data.timestamp)
@@ -325,10 +339,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               }
 
               console.log(`[CHAT CONTEXT] Adding new message ${data.data.id} to state`)
-              return [...prev, {
+              const newMessages = [...prev, {
                 ...data.data,
                 timestamp: new Date(data.data.timestamp)
               }]
+
+              // Force immediate update by creating a new array reference
+              triggerUpdate()
+              return newMessages.slice()
             })
             break
 
@@ -423,10 +441,30 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           setMessages(prev => {
             const exists = prev.some(msg => msg.id === newMessage.id)
             if (!exists) {
-              return [...prev, {
+              const updatedMessages = [...prev, {
                 ...newMessage,
                 timestamp: new Date(newMessage.timestamp)
               }]
+
+              // Force immediate update by creating a new array reference
+              triggerUpdate()
+              return updatedMessages.slice()
+            }
+            return prev
+          })
+        } else {
+          // Even with SSE, add immediately for better UX, SSE will handle deduplication
+          setMessages(prev => {
+            const exists = prev.some(msg => msg.id === newMessage.id)
+            if (!exists) {
+              const updatedMessages = [...prev, {
+                ...newMessage,
+                timestamp: new Date(newMessage.timestamp)
+              }]
+
+              // Force immediate update by creating a new array reference
+              triggerUpdate()
+              return updatedMessages.slice()
             }
             return prev
           })
@@ -498,7 +536,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     isChatOpen,
     setIsChatOpen,
     isLoading,
-    usePolling
+    usePolling,
+    forceUpdate
   }
 
   return (
