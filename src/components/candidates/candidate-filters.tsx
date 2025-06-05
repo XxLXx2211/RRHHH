@@ -62,6 +62,7 @@ const CandidateFiltersComponent = function CandidateFilters({ onFilterChange, in
       }, 300);
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [searchValue, filters, onFilterChange]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

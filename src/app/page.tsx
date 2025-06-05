@@ -98,13 +98,18 @@ export default function HomePage() {
       mapped.zona = filters.zona;
     }
 
-    // Debug logging para ver qué filtros se están enviando
-    console.log('[Frontend] Sending filters to API (before normalization):', mapped);
-    console.log('[Frontend] Original filters state:', filters);
+    // Debug logging solo en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Frontend] Sending filters to API (before normalization):', mapped);
+      console.log('[Frontend] Original filters state:', filters);
+    }
 
     // Normalizar los filtros de enum para asegurar compatibilidad con la base de datos
     const normalizedMapped = normalizeFiltersForApi(mapped);
-    console.log('[Frontend] Sending filters to API (after normalization):', normalizedMapped);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Frontend] Sending filters to API (after normalization):', normalizedMapped);
+    }
 
     // Filtro de edad - convertir rango a min/max
     if (filters.edad && filters.edad !== 'Todos') {
@@ -294,9 +299,17 @@ export default function HomePage() {
 
   const candidateFormData = useMemo((): CandidateFormData | null => {
     if (!editingCandidate) return null;
-    console.log('[Page] Editing candidate data:', editingCandidate);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Page] Editing candidate data:', editingCandidate);
+    }
+
     const formData = mapCandidateToFormData(editingCandidate);
-    console.log('[Page] Mapped form data being passed:', formData);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Page] Mapped form data being passed:', formData);
+    }
+
     return formData;
   }, [editingCandidate]);
 

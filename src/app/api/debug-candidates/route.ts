@@ -75,7 +75,7 @@ export async function GET() {
         },
         serviceQuery: {
           data: serviceData,
-          error: serviceError?.message || null,
+          error: (serviceError as any)?.message || null,
           count: serviceData?.length || 0
         },
         tableColumns: {

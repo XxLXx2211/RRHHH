@@ -6,6 +6,17 @@ export default {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/context/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/hooks/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  // Optimización: purgar clases no utilizadas
+  safelist: [
+    // Clases dinámicas que podrían ser purgadas incorrectamente
+    'animate-spin',
+    'animate-pulse',
+    'bg-destructive',
+    'text-destructive',
+    'border-destructive',
   ],
   theme: {
   	extend: {

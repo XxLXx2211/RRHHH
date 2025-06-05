@@ -7,22 +7,70 @@ import { QueryProvider } from '@/context/query-provider';
 import { ClientLayout } from '@/components/client-layout';
 import { AuthProvider } from '@/components/auth/auth-provider';
 import { ChatProvider } from '@/context/chat-context';
-import { ChatWidget } from '@/components/chat/chat-widget';
 import { NotificationProvider } from '@/context/notification-context';
-import { InstallPrompt } from '@/components/pwa/install-prompt';
+import { ChatWidget, InstallPrompt } from '@/components/layout/dynamic-components';
 
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
+  preload: false, // Solo precargar la fuente principal
 });
 
 
+
+// Metadatos optimizados
+export const metadata = {
+  title: {
+    default: 'CandidatoScope',
+    template: '%s | CandidatoScope'
+  },
+  description: 'Sistema completo de gestión de candidatos y recursos humanos con IA integrada',
+  keywords: ['RRHH', 'candidatos', 'gestión', 'recursos humanos', 'IA', 'reclutamiento'],
+  authors: [{ name: 'CandidatoScope Team' }],
+  creator: 'CandidatoScope',
+  publisher: 'CandidatoScope',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:9002'),
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: '/app-icon.ico',
+    shortcut: '/app-icon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
+  themeColor: '#70A7E3',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
+};
 
 export default function RootLayout({
   children,
@@ -30,19 +78,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
-        <title>CandidatoScope</title>
-        <meta name="description" content="Candidate Management System" />
+        {/* Preconnect para optimizar carga de recursos externos */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://rwcbpuekhaujyzgaodro.supabase.co" />
 
-        {/* Favicon */}
-        <link rel="icon" href="/app-icon.ico" sizes="any" />
-        <link rel="icon" href="/app-icon.ico" type="image/x-icon" />
-        <link rel="shortcut icon" href="/app-icon.ico" />
+        {/* DNS Prefetch para dominios externos */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
 
-        {/* PWA Manifest */}
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#70A7E3" />
+        {/* Optimización de recursos críticos */}
+        <link rel="preload" href="/app-icon.ico" as="image" type="image/x-icon" />
+
+        {/* PWA Meta Tags optimizados */}
+        <meta name="application-name" content="CandidatoScope" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="CandidatoScope" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-TileColor" content="#70A7E3" />
+        <meta name="msapplication-tap-highlight" content="no" />
 
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

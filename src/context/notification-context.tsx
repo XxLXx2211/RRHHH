@@ -36,7 +36,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       // Set up notification listener
       const handleNotification = (notification: Notification) => {
         setNotifications(prev => [notification, ...prev])
-        
+
         // Show toast notification
         toast({
           title: notification.title,
@@ -55,6 +55,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         setIsConnected(false)
       }
     }
+    return undefined;
   }, [session, toast])
 
   const markAsRead = (id: string) => {
